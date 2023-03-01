@@ -12,7 +12,6 @@ import {
 } from 'discord.js';
 import os from 'os';
 import { ExtendedClient } from '../../client/ExtendedClient';
-import ngrok from 'ngrok';
 import axios from 'axios';
 import config from '../../config';
 import path from 'path';
@@ -62,9 +61,6 @@ export async function execute(
       {
         name: '🔧 Техническая информация',
         value:
-          `‣ Web-сервер: ${
-            ngrok.getUrl() ? bold('Работает!') : bold('Выключен!')
-          }\n` +
           `‣ Версия бота: Загрузка...\n` +
           `‣ Рестарт сервера был: ${time(
             Math.floor(Date.now() / 1000 - os.uptime()),
@@ -90,9 +86,6 @@ export async function execute(
 
   if (statusEmbed && statusEmbed.data && statusEmbed.data.fields) {
     statusEmbed.data.fields[1].value =
-      `‣ Web-сервер: ${
-        ngrok.getUrl() ? bold('Работает!') : bold('Выключен!')
-      }\n` +
       `‣ Версия бота: ${inlineCode(lastestCommitId.slice(0, 7))}\n` +
       `‣ Рестарт сервера был: <t:${Math.floor(
         Date.now() / 1000 - os.uptime()
