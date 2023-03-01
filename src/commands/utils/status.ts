@@ -31,7 +31,7 @@ export async function execute(
 ) {
   const buttonsRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
     new ButtonBuilder()
-      .setURL('https://github.com/richardscull/RichardsCoffeeShop') //TO CHANGE
+      .setURL('https://github.com/richardscull/RichardsMusicBot') 
       .setLabel('📂 GitHub')
       .setStyle(ButtonStyle.Link)
   );

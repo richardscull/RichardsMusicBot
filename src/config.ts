@@ -28,7 +28,7 @@ if (
 }
 
 const defaultGithubBranch =
-  'repos/richardscull/RichardsCoffeeShop/commits/master'; //TO CHANGE
+  'repos/richardscull/RichardsMusicBot/commits/master';
 GITHUB_BRANCH_URL = GITHUB_BRANCH_URL ? GITHUB_BRANCH_URL : defaultGithubBranch;
 
 const config: Record<string, string> = {
