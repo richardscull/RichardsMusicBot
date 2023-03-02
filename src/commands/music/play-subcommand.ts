@@ -5,6 +5,7 @@ import {
   createAudioResource,
   joinVoiceChannel,
   NoSubscriberBehavior,
+  VoiceConnectionStatus,
 } from '@discordjs/voice';
 import {
   ActionRowBuilder,
@@ -12,6 +13,7 @@ import {
   ChatInputCommandInteraction,
   ComponentType,
   SlashCommandSubcommandBuilder,
+  StageChannel,
   StringSelectMenuBuilder,
 } from 'discord.js';
 
@@ -285,6 +287,7 @@ async function createGuildPlayer(
     embed.playerEmbed = await createMusicEmbed(guildPlayer, videoData);
 
     if (!embed.playerMessage && interaction.channel && embed.playerEmbed) {
+      if (interaction.channel instanceof StageChannel) return;
       embed.playerMessage = await interaction.channel.send({
         embeds: [embed.playerEmbed],
       });
@@ -373,6 +376,18 @@ async function createGuildPlayer(
     }
   });
 
+  /* Discord changed his policy to force all voice connections send 74-bytes UDP,
+   so this temporally fix should work for now...
+Credits to: https://github.com/discordjs/discord.js/issues/9185#issuecomment-1450863604 */
+  voiceConnection.on('stateChange', (old_state, new_state) => {
+    if (
+      old_state.status === VoiceConnectionStatus.Ready &&
+      new_state.status === VoiceConnectionStatus.Connecting
+    ) {
+      voiceConnection.configureNetworking();
+    }
+  });
+
   voiceConnection.subscribe(audioPlayer);
 
   client.musicPlayer.set(guildId, {
@@ -415,7 +430,7 @@ export async function handleStringSearch(
         components: [],
         embeds: [
           client.successEmbed(
-            `🌿 Трек ${videoData.video_details.title} был успешно добавлен!`
+            `🌿 Песня ${videoData.video_details.title} был успешно добавлен!`
           ),
         ],
       });

@@ -1,4 +1,4 @@
-import { Events, Message } from 'discord.js';
+import { Events, Message, StageChannel } from 'discord.js';
 import { client } from '../client/index';
 
 module.exports = {
@@ -13,7 +13,7 @@ async function checkIfPlayerMessage(Message: Message<true>) {
   const guildPlayer = await client.getGuildPlayer(Message.guildId);
   if (guildPlayer && guildPlayer.embed.playerMessage === Message) {
     const { thread: deletedMessageThread } = Message;
-
+    if (Message.channel instanceof StageChannel) return;
     if (guildPlayer.embed.playerEmbed)
       guildPlayer.embed.playerMessage = await Message.channel.send({
         embeds: [guildPlayer.embed.playerEmbed],
