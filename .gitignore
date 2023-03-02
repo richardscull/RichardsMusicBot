@@ -1,6 +1,8 @@
 build
 node_modules
 emojis.json
-osuUsers.json
+package-lock.json
+yarn.lock
 .env
 .vscode
+
