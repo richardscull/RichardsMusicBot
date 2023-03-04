@@ -6,22 +6,26 @@
 <h4 align="center">📂 Currently abandoned Discord bot for playing music from youtube and spotify <h4>
 
 # 🔧 Requirements
+
 To set up the self-hosted version of the bot, the following are required:
+
 1. Node.js v16.9.0 or higher
 2. Discord.js v14
 
 # ⚙️ Setup
+
 To start, clone the git repository and install all required dependencies:
+
 ```shell
 git clone https://github.com/richardscull/RichardsMusicBot
 cd RichardsMusicBot
 npm install
 ```
 
-After that, create and fill in the .env file with the required information: 
+After that, create and fill in the .env file with the required information:
+
 ```env
 # Bot information
-DISCORD_SECRET= Discord application secret
 DISCORD_TOKEN= Discord application token
 DISCORD_ID= Discord application ID
 
@@ -35,6 +39,4 @@ SPOTIFY_REFRESH_TOKEN= Spotify client refrsh token
 SPOTIFY_MARKET= Spotify client market
 ```
 
-After that, you can successfully run bot by typing ```npm run build:start``` or ```yarn build:start```!
-
-
+After that, you can successfully run bot by typing `npm run build:start` or `yarn build:start`!

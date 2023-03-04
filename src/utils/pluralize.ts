@@ -1,12 +1,20 @@
-export function pluralize(number: number, word: string) {
+export function pluralize(number: number, word: string, suffixes: Suffixes) {
   if (number % 10 === 1 && number % 100 !== 11) {
-    return word;
+    return word + suffixes.oneObject;
   } else if (
     [2, 3, 4].includes(number % 10) &&
     ![12, 13, 14].includes(number % 100)
   ) {
-    return word + 'а';
+    return word + suffixes.someObjects
+      ? suffixes.someObjects
+      : suffixes.manyObjects;
   } else {
-    return word + 'ов';
+    return word + suffixes.manyObjects;
   }
+}
+
+interface Suffixes {
+  oneObject: string;
+  someObjects?: string;
+  manyObjects: string;
 }

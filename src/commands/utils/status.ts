@@ -15,6 +15,7 @@ import { ExtendedClient } from '../../client/ExtendedClient';
 import axios from 'axios';
 import config from '../../config';
 import path from 'path';
+import { pluralize } from '../../utils/pluralize';
 
 export const data = new SlashCommandBuilder()
   .setName('status')
@@ -31,31 +32,43 @@ export async function execute(
 ) {
   const buttonsRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
     new ButtonBuilder()
-      .setURL('https://github.com/richardscull/RichardsMusicBot') 
+      .setURL('https://github.com/richardscull/RichardsMusicBot')
       .setLabel('📂 GitHub')
       .setStyle(ButtonStyle.Link)
   );
 
-  const guildsCached = client.guilds.cache.size.toString();
+  const guildsCached = client.guilds.cache.size;
+
   const usersInGuilds = client.guilds.cache
     .reduce((acc, guild) => acc + guild.memberCount, 0)
     .toString();
 
+  if (!client.readyAt || !client.user) return;
+
   const statusEmbed = new EmbedBuilder()
     .setAuthor({
       name: 'Технический отчет бота',
-      iconURL: client.user?.displayAvatarURL(),
+      iconURL: client.user.displayAvatarURL(),
     })
     .setColor('NotQuiteBlack')
-    .setTitle(`> "${client.user?.username}"`)
+    .setTitle(`> "${client.user.username}"`)
     .setFields(
       {
         name: bold(`📋 Общая информация`).toString(),
         value:
-          `‣ Бот установлен на ${bold(guildsCached)} серверах.\n` +
-          `‣ Бот обслуживает ${bold(usersInGuilds)} пользователей.\n` +
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          `‣ Рестарт был: ${time(client.readyAt!, 'R')}.`,
+          `‣ Бот установлен на ${bold(guildsCached.toString())} ` +
+          pluralize(guildsCached, 'сервер', {
+            oneObject: 'е',
+            manyObjects: 'ах',
+          }) +
+          `.\n` +
+          `‣ Бот обслуживает ${bold(usersInGuilds)} ` +
+          pluralize(guildsCached, 'пользовател', {
+            oneObject: 'я',
+            manyObjects: 'ей',
+          }) +
+          `.\n` +
+          `‣ Рестарт был: ${time(client.readyAt, 'R')}.`,
         inline: true,
       },
       {

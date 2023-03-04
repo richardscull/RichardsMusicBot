@@ -304,6 +304,8 @@ async function createGuildPlayer(
 
     embedInterval = setInterval(async () => {
       if (!embed.playerMessage) return;
+      if (!embed.playerMessage.embeds[0]) return embed.playerMessage.delete();
+
       if (embed.playerMessage.embeds.length < 0)
         return embed.playerMessage.delete();
 
