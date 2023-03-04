@@ -51,7 +51,11 @@ export async function execute(
     sendThreadEmbed(interaction, embed.playerThread, {
       description: `⏭ Пользователь ${
         timesToSkip
-          ? `пропустил **${timesToSkip}** ${pluralize(timesToSkip, 'трек')}!`
+          ? `пропустил **${timesToSkip}** ${pluralize(timesToSkip, 'трек', {
+              oneObject: '',
+              someObjects: 'а',
+              manyObjects: 'ов',
+            })}!`
           : `пропустил **текущий** трек!`
       }`,
     });
