@@ -15,6 +15,7 @@ import {
   SlashCommandSubcommandBuilder,
   StageChannel,
   StringSelectMenuBuilder,
+  VoiceChannel,
 } from 'discord.js';
 
 import { ExtendedClient } from '../../client/ExtendedClient';
@@ -86,12 +87,20 @@ export async function execute(
   }
 
   if (Array.isArray(userInputUrl)) {
+    if (isForcedInput) {
+      await interaction.editReply({
+        embeds: [
+          client.errorEmbed(
+            `❌ К сожалению вы не можете запустить плейлист сразу!`
+          ),
+        ],
+      });
+
+      return;
+    }
+
     for (let i = 0; i < userInputUrl.length; i++) {
-      if (isForcedInput) {
-        await spliceSong(interaction, guildPlayer, userInputUrl[i]);
-      } else {
-        await pushSong(interaction, guildPlayer, userInputUrl[i]);
-      }
+      await pushSong(interaction, guildPlayer, userInputUrl[i]);
     }
   }
 
@@ -101,7 +110,42 @@ export async function execute(
         client.errorEmbed(`❌ Я не смог найти результатов по вашему запросу!`),
       ],
     });
+
     return;
+  }
+
+  if (!guildPlayer.voiceConnection.joinConfig.channelId) return;
+
+  const voiceChannel = client.channels.cache.get(
+    guildPlayer.voiceConnection.joinConfig.channelId
+  ) as VoiceChannel;
+
+  const { playerMessage, playerThread, playerEmbed } = guildPlayer.embed;
+
+  if (!voiceChannel.members.get(interaction.client.user.id)) {
+    await interaction.editReply({
+      embeds: [
+        client.errorEmbed(
+          `🚪 Бот не был в аудио канале, поэтому плеер был остановлен.`
+        ),
+      ],
+    });
+
+    if (playerEmbed)
+      playerEmbed.setDescription(
+        `🚪 Бот не был в аудио канале, поэтому плеер был остановлен.`
+      );
+
+    try {
+      if (playerMessage && playerEmbed)
+        await playerMessage.edit({ embeds: [playerEmbed] });
+    } finally {
+      client.deleteGuildPlayer(interaction.guildId);
+      if (playerThread) playerThread.delete();
+    }
+
+    guildPlayer.audioPlayer.stop();
+    return guildPlayer.voiceConnection.destroy();
   }
 
   if (Array.isArray(userInputUrl)) {
@@ -303,11 +347,47 @@ async function createGuildPlayer(
       await sendSongEmbed(embed.playerThread, videoData, queue[0].user);
 
     embedInterval = setInterval(async () => {
-      if (!embed.playerMessage) return;
-      if (!embed.playerMessage.embeds[0]) return embed.playerMessage.delete();
+      if (!guildPlayer.voiceConnection.joinConfig.channelId) return;
 
-      if (embed.playerMessage.embeds.length < 0)
-        return embed.playerMessage.delete();
+      const voiceChannel = client.channels.cache.get(
+        guildPlayer.voiceConnection.joinConfig.channelId
+      ) as VoiceChannel;
+
+      const { playerMessage, playerThread, playerEmbed } = embed;
+
+      if (!playerEmbed || !playerMessage || !playerThread) return;
+
+      if (!voiceChannel.members.get(interaction.client.user.id)) {
+        playerEmbed.setDescription(
+          `🚪 Бот не был в аудио канале, поэтому плеер был остановлен.`
+        );
+
+        try {
+          await playerMessage.edit({ embeds: [playerEmbed] });
+        } finally {
+          client.deleteGuildPlayer(guildId);
+          playerThread.delete();
+        }
+
+        guildPlayer.audioPlayer.stop();
+        return voiceConnection.destroy();
+      }
+
+      if (voiceChannel.members.size <= 1) {
+        playerEmbed.setDescription(
+          `🐁 Никто не слушает музыку, поэтому плеер был остановлен.`
+        );
+
+        try {
+          await playerMessage.edit({ embeds: [playerEmbed] });
+        } finally {
+          client.deleteGuildPlayer(guildId);
+          playerThread.delete();
+        }
+
+        guildPlayer.audioPlayer.stop();
+        return voiceConnection.destroy();
+      }
 
       const playerState = audioPlayer.state as AudioPlayerPlayingState;
 
@@ -322,12 +402,10 @@ async function createGuildPlayer(
         8
       );
 
-      if (!embed.playerEmbed || !embed.playerMessage) return;
-
-      await embed.playerMessage
-        ?.edit({
+      await playerMessage
+        .edit({
           embeds: [
-            embed.playerEmbed
+            playerEmbed
               .setDescription(
                 `${status.isPaused ? '⏸ | ' : ''}${
                   status.onRepeat ? '🔁 | ' : ''
@@ -345,9 +423,8 @@ async function createGuildPlayer(
               }),
           ],
         })
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
         .catch(() => {});
-    }, 30 * 1000); //30s timer
+    }, 5 * 1000); //30s timer TODO CHAGE TO 30 LATER
   });
 
   audioPlayer.on(AudioPlayerStatus.Idle, async () => {
@@ -427,12 +504,11 @@ export async function handleStringSearch(
       dispose: true,
     })
     .then(async (interaction) => {
-      const videoData = await play.video_basic_info(interaction.values[0]);
-      interaction.update({
+      await interaction.update({
         components: [],
         embeds: [
           client.successEmbed(
-            `🌿 Песня ${videoData.video_details.title} был успешно добавлен!`
+            `⌛ Пожалуйста, подождите, идет загрузка трека...`
           ),
         ],
       });
