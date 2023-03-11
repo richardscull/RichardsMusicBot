@@ -122,7 +122,7 @@ export async function execute(
 
   const { playerMessage, playerThread, playerEmbed } = guildPlayer.embed;
 
-  if (!voiceChannel.members.get(interaction.client.user.id)) {
+  if (!voiceChannel.members.get(interaction.client.user.id) && !hasEmptyQueue) {
     await interaction.editReply({
       embeds: [
         client.errorEmbed(
