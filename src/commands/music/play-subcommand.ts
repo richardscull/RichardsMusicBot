@@ -426,7 +426,7 @@ async function createGuildPlayer(
           ],
         })
         .catch(() => {});
-    }, 5 * 3000); //30s timer TODO CHAGE TO 30 LATER
+    }, 30 * 1000);
   });
 
   audioPlayer.on(AudioPlayerStatus.Idle, async () => {
