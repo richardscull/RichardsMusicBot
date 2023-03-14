@@ -5,7 +5,6 @@ import {
   createAudioResource,
   joinVoiceChannel,
   NoSubscriberBehavior,
-  VoiceConnectionStatus,
 } from '@discordjs/voice';
 import {
   ActionRowBuilder,
@@ -454,18 +453,6 @@ async function createGuildPlayer(
         playerThread?.delete();
       }
       return voiceConnection.destroy();
-    }
-  });
-
-  /* Discord changed his policy to force all voice connections send 74-bytes UDP,
-   so this temporally fix should work for now...
-Credits to: https://github.com/discordjs/discord.js/issues/9185#issuecomment-1450863604 */
-  voiceConnection.on('stateChange', (old_state, new_state) => {
-    if (
-      old_state.status === VoiceConnectionStatus.Ready &&
-      new_state.status === VoiceConnectionStatus.Connecting
-    ) {
-      voiceConnection.configureNetworking();
     }
   });
 
