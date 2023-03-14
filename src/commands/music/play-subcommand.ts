@@ -188,6 +188,8 @@ export async function execute(
   }
 
   if (isForcedInput) {
+    if (guildPlayer.status.onRepeat) guildPlayer.queue.shift();
+
     guildPlayer.status.isPaused = false;
     guildPlayer.audioPlayer.stop(true);
 
