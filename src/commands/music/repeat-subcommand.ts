@@ -30,7 +30,7 @@ export async function execute(
       description: `🔁 Пользователь **${
         status.onRepeat ? 'включил' : 'выключил'
       }** функцию зацикливания!`,
-    });
+    }).catch(() => {});
 
   return await interaction.editReply({
     embeds: [getEmbed],

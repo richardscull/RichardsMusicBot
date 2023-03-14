@@ -49,7 +49,7 @@ export async function stopAudioPlayer(
 
   playerEmbed.data.footer.text = playerEmbed.data.footer.text.split('|')[0];
 
-  await playerMessage.edit({ embeds: [playerEmbed] });
+  await playerMessage.edit({ embeds: [playerEmbed] }).catch(() => {});
 
-  playerThread.delete();
+  await playerThread.delete();
 }

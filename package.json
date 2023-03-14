@@ -39,7 +39,7 @@
     "build": "tsc",
     "build:start": "yarn deploy-commands",
     "start": "node build/index.js ",
-    "dev": "concurrently \"tsc -w\"\"nodemon build/index.js --ignore *.json\"",
+    "dev": "concurrently \"tsc -w\" \"nodemon build/index.js --ignore *.json\"",
     "clear": "rimraf build/",
     "deploy-commands": "tsc && node build/client/deploy-commands.js",
     "lint": "eslint . --ext .ts"

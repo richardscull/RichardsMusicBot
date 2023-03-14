@@ -140,12 +140,13 @@ export async function execute(
       if (playerMessage && playerEmbed)
         await playerMessage.edit({ embeds: [playerEmbed] });
     } finally {
-      client.deleteGuildPlayer(interaction.guildId);
+      await client.deleteGuildPlayer(interaction.guildId);
       if (playerThread) playerThread.delete();
     }
 
     guildPlayer.audioPlayer.stop();
-    return guildPlayer.voiceConnection.destroy();
+    if (guildPlayer.voiceConnection) guildPlayer.voiceConnection.destroy();
+    return;
   }
 
   if (Array.isArray(userInputUrl)) {
@@ -340,7 +341,7 @@ async function createGuildPlayer(
         name: '🔊 Музыкальный плеер',
       });
     } else if (embed.playerMessage && embed.playerEmbed && embed.playerThread) {
-      embed.playerMessage?.edit({ embeds: [embed.playerEmbed] });
+      embed.playerMessage.edit({ embeds: [embed.playerEmbed] });
     }
 
     if (embed.playerThread)
@@ -365,12 +366,13 @@ async function createGuildPlayer(
         try {
           await playerMessage.edit({ embeds: [playerEmbed] });
         } finally {
-          client.deleteGuildPlayer(guildId);
+          await client.deleteGuildPlayer(guildId);
           playerThread.delete();
         }
 
         guildPlayer.audioPlayer.stop();
-        return voiceConnection.destroy();
+        if (voiceConnection) voiceConnection.destroy();
+        return;
       }
 
       if (voiceChannel.members.size <= 1) {
