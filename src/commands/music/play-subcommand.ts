@@ -5,7 +5,6 @@ import {
   createAudioResource,
   joinVoiceChannel,
   NoSubscriberBehavior,
-  VoiceConnectionStatus,
 } from '@discordjs/voice';
 import {
   ActionRowBuilder,
@@ -140,12 +139,13 @@ export async function execute(
       if (playerMessage && playerEmbed)
         await playerMessage.edit({ embeds: [playerEmbed] });
     } finally {
-      client.deleteGuildPlayer(interaction.guildId);
+      await client.deleteGuildPlayer(interaction.guildId);
       if (playerThread) playerThread.delete();
     }
 
     guildPlayer.audioPlayer.stop();
-    return guildPlayer.voiceConnection.destroy();
+    if (guildPlayer.voiceConnection) guildPlayer.voiceConnection.destroy();
+    return;
   }
 
   if (Array.isArray(userInputUrl)) {
@@ -340,7 +340,7 @@ async function createGuildPlayer(
         name: '🔊 Музыкальный плеер',
       });
     } else if (embed.playerMessage && embed.playerEmbed && embed.playerThread) {
-      embed.playerMessage?.edit({ embeds: [embed.playerEmbed] });
+      embed.playerMessage.edit({ embeds: [embed.playerEmbed] });
     }
 
     if (embed.playerThread)
@@ -365,12 +365,13 @@ async function createGuildPlayer(
         try {
           await playerMessage.edit({ embeds: [playerEmbed] });
         } finally {
-          client.deleteGuildPlayer(guildId);
+          await client.deleteGuildPlayer(guildId);
           playerThread.delete();
         }
 
         guildPlayer.audioPlayer.stop();
-        return voiceConnection.destroy();
+        if (voiceConnection) voiceConnection.destroy();
+        return;
       }
 
       if (voiceChannel.members.size <= 1) {
@@ -424,7 +425,7 @@ async function createGuildPlayer(
           ],
         })
         .catch(() => {});
-    }, 5 * 3000); //30s timer TODO CHAGE TO 30 LATER
+    }, 30 * 1000);
   });
 
   audioPlayer.on(AudioPlayerStatus.Idle, async () => {
@@ -452,18 +453,6 @@ async function createGuildPlayer(
         playerThread?.delete();
       }
       return voiceConnection.destroy();
-    }
-  });
-
-  /* Discord changed his policy to force all voice connections send 74-bytes UDP,
-   so this temporally fix should work for now...
-Credits to: https://github.com/discordjs/discord.js/issues/9185#issuecomment-1450863604 */
-  voiceConnection.on('stateChange', (old_state, new_state) => {
-    if (
-      old_state.status === VoiceConnectionStatus.Ready &&
-      new_state.status === VoiceConnectionStatus.Connecting
-    ) {
-      voiceConnection.configureNetworking();
     }
   });
 

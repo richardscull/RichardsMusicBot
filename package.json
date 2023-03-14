@@ -2,7 +2,7 @@
   "dependencies": {
     "@discordjs/builders": "^1.4.0",
     "@discordjs/rest": "^1.5.0",
-    "@discordjs/voice": "^0.14.1-dev.1677715886-dc142c4.0",
+    "@discordjs/voice": "^0.15.0",
     "@types/dotenv": "^8.2.0",
     "axios": "^1.2.3",
     "chalk": "^4.1.2",
@@ -22,9 +22,9 @@
   "main": "index.js",
   "types": "index.d.ts",
   "devDependencies": {
+    "@types/express": "^4.17.15",
     "@typescript-eslint/eslint-plugin": "^5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
-    "@types/express": "^4.17.15",
     "concurrently": "^7.6.0",
     "copyfiles": "^2.4.1",
     "eslint": "^8.30.0",
@@ -39,7 +39,7 @@
     "build": "tsc",
     "build:start": "yarn deploy-commands",
     "start": "node build/index.js ",
-    "dev": "concurrently \"tsc -w\"\"nodemon build/index.js --ignore *.json\"",
+    "dev": "concurrently \"tsc -w\" \"nodemon build/index.js --ignore *.json\"",
     "clear": "rimraf build/",
     "deploy-commands": "tsc && node build/client/deploy-commands.js",
     "lint": "eslint . --ext .ts"

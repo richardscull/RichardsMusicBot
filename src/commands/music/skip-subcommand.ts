@@ -34,7 +34,8 @@ export async function execute(
   }
 
   const { queue, embed } = guildPlayer;
-  if (queue.length < 1) {
+
+  if (queue.length <= 1) {
     await stopAudioPlayer(interaction, client, guildPlayer);
   } else {
     guildPlayer.status.isPaused = false;
@@ -43,12 +44,16 @@ export async function execute(
 
   const getEmbed = client.successEmbed(
     timesToSkip
-      ? `✅ ${timesToSkip} треков было пропущен!`
+      ? `✅ ${timesToSkip} ${pluralize(timesToSkip, '', {
+          oneObject: 'трек был пропущен',
+          someObjects: 'трека было пропущено',
+          manyObjects: 'треков было пропущено',
+        })}!`
       : `✅ Текущий трек был пропущен!`
   );
 
-  if (embed.playerThread)
-    sendThreadEmbed(interaction, embed.playerThread, {
+  if (embed.playerThread && queue.length > 1)
+    await sendThreadEmbed(interaction, embed.playerThread, {
       description: `⏭ Пользователь ${
         timesToSkip
           ? `пропустил **${timesToSkip}** ${pluralize(timesToSkip, 'трек', {
@@ -58,7 +63,7 @@ export async function execute(
             })}!`
           : `пропустил **текущий** трек!`
       }`,
-    });
+    }).catch(() => {});
 
   return await interaction.editReply({
     embeds: [getEmbed],

@@ -33,7 +33,7 @@ export async function execute(
       description: `🎶 Пользователь ${
         status.isPaused ? `**возобновил**` : `**приостановил**`
       } вещание трека!`,
-    });
+    }).catch(() => {});
 
   return await interaction.editReply({
     embeds: [getEmbed],
