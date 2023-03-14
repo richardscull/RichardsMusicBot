@@ -3,7 +3,7 @@
 <a href="https://www.pixiv.net/en/artworks/69208923"><img src="https://github.com/richardscull/RichardsMusicBot/blob/master/images/statusEmbed.png?raw=true" alt="Richard's coffee shop"></a>
   
 </h1>
-<h4 align="center">📂 Currently (not) abandoned Discord bot for playing music from youtube and spotify <h4>
+<h4 align="center">🎶 Discord bot for playing music from youtube and spotify <h4>
 
 # 🔧 Requirements
 
