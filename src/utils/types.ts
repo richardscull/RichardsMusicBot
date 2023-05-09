@@ -4,7 +4,7 @@ import { AnyThreadChannel, EmbedBuilder, Message } from 'discord.js';
 export interface guildObject {
   voiceConnection: VoiceConnection;
   audioPlayer: AudioPlayer;
-  queue: Array<queuedSong>;
+  queue: Array<songObject>;
   embed: {
     playerMessage?: Message<true>;
     playerEmbed?: EmbedBuilder;
@@ -16,11 +16,14 @@ export interface guildObject {
   };
 }
 
-export type queuedSong = {
+export interface songObject {
   user: string;
-  song: string;
-  seek?: number;
-};
+  song: {
+    type: 'spotify' | 'youtube';
+    url: string;
+    seek?: number;
+  };
+}
 
 export type stringMenuOption = {
   label: string;

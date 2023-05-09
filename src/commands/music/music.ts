@@ -94,4 +94,3 @@ const subcommandFunctions: Record<
   skip: skipExecute,
   chapters: chaptersExecute,
 };
-
