@@ -87,7 +87,7 @@ export async function createMusicEmbed(
       videoData;
     const { status, queue } = guildPlayer;
     if (!channel?.icons || !channel.name) return;
-    const startTime = queue[0].seek ? queue[0].seek * 1000 : 0;
+    const startTime = queue[0].song.seek ? queue[0].song.seek * 1000 : 0;
     const progressBar = await createProgressBar(
       startTime,
       durationInSec * 1000,

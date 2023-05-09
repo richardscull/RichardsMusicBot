@@ -6,7 +6,7 @@
     "@types/dotenv": "^8.2.0",
     "axios": "^1.2.3",
     "chalk": "^4.1.2",
-    "discord.js": "^14.7.1",
+    "discord.js": "^14.9.0",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
     "fast-average-color-node": "^2.6.0",

@@ -8,7 +8,7 @@ import play from 'play-dl';
 
 import { ExtendedClient } from '../../client/ExtendedClient';
 import { createMenuReply } from '../../utils/selectMenuHandler';
-import { stringMenuOption } from '../../utils';
+import { songObject, stringMenuOption } from '../../utils';
 import { sendThreadEmbed } from './embedsHandler';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
@@ -26,7 +26,7 @@ export async function execute(
 
   const { queue, embed } = guildPlayer;
   const songToPlay = queue[0].song;
-  const videoData = (await play.video_info(queue[0].song)).video_details;
+  const videoData = (await play.video_info(queue[0].song.url)).video_details;
 
   if (videoData.chapters.length === 0)
     return await interaction.editReply({
@@ -61,10 +61,13 @@ export async function execute(
         });
 
       queue.splice(1, 0, {
-        song: queue[0].song,
         user: queue[0].user,
-        seek: videoData.chapters[parseInt(choiceDes.value)].seconds,
-      });
+        song: {
+          type: 'youtube',
+          url: queue[0].song.url,
+          seek: videoData.chapters[parseInt(choiceDes.value)].seconds,
+        },
+      } as songObject);
 
       return guildPlayer.audioPlayer.stop();
     } else {
