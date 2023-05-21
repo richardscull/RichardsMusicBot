@@ -1,10 +1,13 @@
 import { AudioPlayer, VoiceConnection } from '@discordjs/voice';
 import { AnyThreadChannel, EmbedBuilder, Message } from 'discord.js';
+import { ExtendedClient } from '../client/ExtendedClient';
 
 export interface guildObject {
   voiceConnection: VoiceConnection;
   audioPlayer: AudioPlayer;
   queue: Array<songObject>;
+  guildId: string;
+  interval?: NodeJS.Timeout;
   embed: {
     playerMessage?: Message<true>;
     playerEmbed?: EmbedBuilder;
@@ -14,6 +17,11 @@ export interface guildObject {
     isPaused: boolean;
     onRepeat: boolean;
   };
+}
+
+export interface PlayerProps {
+  client: ExtendedClient;
+  guildPlayer: guildObject;
 }
 
 export interface songObject {
