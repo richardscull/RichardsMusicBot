@@ -73,17 +73,21 @@ async function getYouTubeTrack(
   url: string,
   interaction: ChatInputCommandInteraction<'cached'>
 ) {
-  const videoData = await play.video_info(url);
+  try {
+    const videoData = await play.video_info(url);
 
-  if (videoData.LiveStreamData.isLive) return errorCodes.is_live;
+    if (videoData.LiveStreamData.isLive) return errorCodes.is_live;
 
-  return {
-    user: `${interaction.user.username}#${interaction.user.discriminator}`,
-    song: {
-      type: 'youtube',
-      url: url,
-    },
-  } as songObject;
+    return {
+      user: `${interaction.user.username}#${interaction.user.discriminator}`,
+      song: {
+        type: 'youtube',
+        url: url,
+      },
+    } as songObject;
+  } catch (error) {
+    return errorCodes.bad_request;
+  }
 }
 
 async function getSpotifyTrack(
@@ -91,16 +95,27 @@ async function getSpotifyTrack(
   interaction: ChatInputCommandInteraction<'cached'>
 ) {
   const spData = (await play.spotify(url)) as SpotifyTrack;
+
   const searchResult = await play.search(
     `${spData.artists[0].name} ${spData.name}`,
-    { limit: 10, source: { youtube: 'video' } }
+    {
+      limit: 10,
+      source: { youtube: 'video' },
+    }
   );
+
+  const filteredResult = searchResult.filter((element) => {
+    return element.uploadedAt || element.music;
+  });
+
+  if (filteredResult.length === 0) filteredResult[0].url = 'dQw4w9WgXcQ';
+
   return {
     user: `${interaction.user.username}#${interaction.user.discriminator}`,
     isForced: isForcedInput(interaction),
     song: {
       type: 'youtube',
-      url: searchResult[0].url,
+      url: filteredResult[0].url,
     },
   } as songObject;
 }

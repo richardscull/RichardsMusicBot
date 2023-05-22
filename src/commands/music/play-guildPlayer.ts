@@ -1,5 +1,5 @@
 import {
-  AudioPlayerPlayingState,
+  AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
   joinVoiceChannel,
@@ -13,27 +13,30 @@ import {
 } from 'discord.js';
 
 import { ExtendedClient } from '../../client/ExtendedClient';
-import play from 'play-dl';
-import { millisecondsToString } from '../../utils';
+import { guildObject } from '../../utils';
 
+import { createMusicEmbed, sendSongEmbedToThread } from './embedsHandler';
 import {
-  createMusicEmbed,
-  createProgressBar,
-  sendSongEmbed,
-} from './embedsHandler';
-import { errorCodes, firstObjectToAudioResource } from './play-utils';
+  ensureValidVoiceConnection,
+  errorCodes,
+  firstObjectToAudioResource,
+} from './play-utils';
+import { stopAudioPlayer } from './stop-subcommand';
 
 export async function createGuildPlayer(
   interaction: ChatInputCommandInteraction<'cached'>,
   client: ExtendedClient
 ) {
   const { channel, member, guildId, guild } = interaction;
-  const textChannel = channel;
-  const memberVoice = member.voice.channel;
+  const voiceChannel = member.voice.channel;
 
-  if (!textChannel || !memberVoice) return;
+  if (!channel || !voiceChannel) return;
 
-  if (textChannel.isThread() || textChannel.type !== ChannelType.GuildText) {
+  if (
+    channel.isThread() ||
+    channel.type !== ChannelType.GuildText ||
+    interaction.channel instanceof StageChannel
+  ) {
     interaction.editReply({
       embeds: [client.errorEmbed(errorCodes.no_permission)],
     });
@@ -41,7 +44,7 @@ export async function createGuildPlayer(
   }
 
   const voiceConnection = joinVoiceChannel({
-    channelId: memberVoice.id,
+    channelId: voiceChannel.id,
     guildId: guildId,
     adapterCreator: guild.voiceAdapterCreator,
   });
@@ -52,173 +55,122 @@ export async function createGuildPlayer(
     },
   });
 
-  let embedInterval: NodeJS.Timeout;
-
-  audioPlayer.on(AudioPlayerStatus.Paused, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
-    if (!guildPlayer) return;
-    guildPlayer.status.isPaused = true;
-  });
-
-  audioPlayer.on(AudioPlayerStatus.Playing, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
-
-    if (!guildPlayer) return;
-
-    const { embed, status, audioPlayer, queue } = guildPlayer;
-
-    const videoData = (await play.video_info(queue[0].song.url)).video_details;
-
-    if (status.isPaused) return (status.isPaused = false);
-
-    embed.playerEmbed = await createMusicEmbed(guildPlayer, videoData);
-
-    if (!embed.playerMessage && interaction.channel && embed.playerEmbed) {
-      if (interaction.channel instanceof StageChannel) return;
-      embed.playerMessage = await interaction.channel.send({
-        embeds: [embed.playerEmbed],
-      });
-
-      embed.playerThread = await embed.playerMessage.startThread({
-        name: '🔊 Музыкальный плеер',
-      });
-    } else if (embed.playerMessage && embed.playerEmbed && embed.playerThread) {
-      embed.playerMessage.edit({ embeds: [embed.playerEmbed] });
-    }
-
-    if (embed.playerThread)
-      await sendSongEmbed(embed.playerThread, videoData, queue[0].user);
-
-    embedInterval = setInterval(async () => {
-      if (!guildPlayer.voiceConnection.joinConfig.channelId) return;
-
-      const voiceChannel = client.channels.cache.get(
-        guildPlayer.voiceConnection.joinConfig.channelId
-      ) as VoiceChannel;
-
-      const { playerMessage, playerThread, playerEmbed } = embed;
-
-      if (!playerEmbed || !playerMessage || !playerThread) return;
-
-      if (!voiceChannel.members.get(interaction.client.user.id)) {
-        playerEmbed.setDescription(
-          `🚪 Бот не был в аудио канале, поэтому плеер был остановлен.`
-        );
-
-        try {
-          await playerMessage.edit({ embeds: [playerEmbed] });
-        } finally {
-          await client.deleteGuildPlayer(guildId);
-          playerThread.delete();
-        }
-
-        guildPlayer.audioPlayer.stop();
-        if (voiceConnection) voiceConnection.destroy();
-        return;
-      }
-
-      if (voiceChannel.members.size <= 1) {
-        playerEmbed.setDescription(
-          `🐁 Никто не слушает музыку, поэтому плеер был остановлен.`
-        );
-
-        try {
-          await playerMessage.edit({ embeds: [playerEmbed] });
-        } finally {
-          client.deleteGuildPlayer(guildId);
-          playerThread.delete();
-        }
-
-        guildPlayer.audioPlayer.stop();
-        return voiceConnection.destroy();
-      }
-
-      const playerState = audioPlayer.state as AudioPlayerPlayingState;
-
-      let { playbackDuration } = playerState;
-
-      playbackDuration = queue[0].song.seek
-        ? playbackDuration + queue[0].song.seek * 1000
-        : playbackDuration;
-
-      const progressBar = await createProgressBar(
-        playbackDuration,
-        videoData.durationInSec * 1000,
-        8
-      );
-
-      await playerMessage
-        .edit({
-          embeds: [
-            playerEmbed
-              .setDescription(
-                `${status.isPaused ? '⏸ | ' : ''}${
-                  status.onRepeat ? '🔁 | ' : ''
-                }` +
-                  `🎧 ${millisecondsToString(
-                    playbackDuration
-                  )} ${progressBar} ${videoData.durationRaw}`
-              )
-              .setFooter({
-                text: `📨 Запросил: ${queue[0].user} ${
-                  queue.length - 1
-                    ? `| 🎼 Треков в очереди: ${queue.length - 1}`
-                    : ''
-                }`,
-              }),
-          ],
-        })
-        .catch(() => {});
-    }, 30 * 1000);
-  });
-
-  audioPlayer.on(AudioPlayerStatus.Idle, async () => {
-    clearInterval(embedInterval);
-
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
-    if (!guildPlayer) return;
-    const { embed, status, queue } = guildPlayer;
-    const { playerEmbed, playerMessage, playerThread } = embed;
-
-    if (status.onRepeat) {
-      queue[0].song.seek = undefined;
-    }
-
-    if (!status.onRepeat || (queue[1] && queue[1].song.seek)) {
-      queue.shift();
-    }
-
-    if (queue.length) {
-      const audioResource = await firstObjectToAudioResource(
-        queue,
-        interaction
-      );
-
-      return guildPlayer.audioPlayer.play(audioResource);
-    } else if (playerEmbed) {
-      playerEmbed.setDescription(`🌧 Плеер закончил свою работу`);
-      try {
-        await playerMessage?.edit({ embeds: [playerEmbed] });
-      } finally {
-        client.deleteGuildPlayer(guildId);
-        playerThread?.delete();
-      }
-      return voiceConnection.destroy();
-    }
-  });
+  await setAudioPlayerBehavior(audioPlayer, interaction, client);
 
   voiceConnection.subscribe(audioPlayer);
 
-  client.musicPlayer.set(guildId, {
+  const guildPlayerProps = {
     voiceConnection: voiceConnection,
     audioPlayer: audioPlayer,
+    guildId: guildId,
     embed: {},
     queue: [],
     status: {
       isPaused: false,
       onRepeat: false,
     },
+  };
+
+  client.musicPlayer.set(guildId, guildPlayerProps);
+  return guildPlayerProps as guildObject;
+}
+
+async function setAudioPlayerBehavior(
+  audioPlayer: AudioPlayer,
+  interaction: ChatInputCommandInteraction<'cached'>,
+  client: ExtendedClient
+) {
+  audioPlayer.on(AudioPlayerStatus.Paused, async () => {
+    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    if (guildPlayer) guildPlayer.status.isPaused = true;
   });
 
-  return await client.getGuildPlayer(guildId);
+  audioPlayer.on(AudioPlayerStatus.Playing, async () => {
+    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+
+    if (!guildPlayer) return;
+    const { embed } = guildPlayer;
+
+    embed.playerEmbed = await createMusicEmbed(guildPlayer);
+    if (!embed.playerEmbed) return;
+
+    if (embed.playerMessage) {
+      embed.playerMessage.edit({ embeds: [embed.playerEmbed] });
+    } else {
+      if (!interaction.channel) return;
+
+      embed.playerMessage = await interaction.channel.send({
+        embeds: [embed.playerEmbed],
+      });
+    }
+
+    if (!embed.playerThread) {
+      embed.playerThread = await embed.playerMessage.startThread({
+        name: '🔊 Музыкальный плеер',
+      });
+    }
+
+    await sendSongEmbedToThread(guildPlayer);
+
+    if (guildPlayer.interval) clearInterval(guildPlayer.interval);
+    guildPlayer.interval = setInterval(
+      async () => await onIntervalUpdate(),
+      30 * 1000 // 30 seconds
+    );
+  });
+
+  audioPlayer.on(AudioPlayerStatus.Idle, async () => {
+    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    if (!guildPlayer) return;
+
+    clearInterval(guildPlayer.interval);
+
+    const { status, queue } = guildPlayer;
+
+    if (status.onRepeat) queue[0].song.seek = undefined;
+
+    /*  NOTE: The second condition ensures that if the next song has a seek value,
+     indicating that the user has changed the chapter of the current song,
+    we shift to a current song that has an updated seek position.  */
+    if (!status.onRepeat || (queue[1] && queue[1].song.seek)) queue.shift();
+
+    if (queue.length) {
+      const audioResource = await firstObjectToAudioResource(
+        queue,
+        interaction
+      );
+      return guildPlayer.audioPlayer.play(audioResource);
+    } else {
+      stopAudioPlayer(`🌧 Плеер закончил свою работу`, { client, guildPlayer });
+    }
+  });
+
+  async function onIntervalUpdate() {
+    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+
+    if (!guildPlayer || !guildPlayer.voiceConnection.joinConfig.channelId)
+      return;
+
+    const voiceChannel = client.channels.cache.get(
+      guildPlayer.voiceConnection.joinConfig.channelId
+    ) as VoiceChannel;
+
+    const isSafeToEdit = await ensureValidVoiceConnection(voiceChannel, {
+      client,
+      guildPlayer,
+    });
+
+    if (isSafeToEdit === false) return clearInterval(guildPlayer.interval);
+
+    const { playerMessage, playerThread, playerEmbed } = guildPlayer.embed;
+
+    const { embed } = guildPlayer;
+
+    if (!playerEmbed || !playerMessage || !playerThread) return;
+
+    embed.playerEmbed = await createMusicEmbed(guildPlayer);
+
+    if (embed.playerMessage && embed.playerEmbed)
+      embed.playerMessage.edit({ embeds: [embed.playerEmbed] }).catch(() => {});
+  }
 }

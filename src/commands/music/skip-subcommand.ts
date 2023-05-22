@@ -36,7 +36,8 @@ export async function execute(
   const { queue, embed } = guildPlayer;
 
   if (queue.length <= 1) {
-    await stopAudioPlayer(interaction, client, guildPlayer);
+    const reason = `🌿 Плеер остановил ${interaction.user.toString()}`;
+    await stopAudioPlayer(reason, { client, guildPlayer });
   } else {
     guildPlayer.status.isPaused = false;
     guildPlayer.audioPlayer.stop(true);

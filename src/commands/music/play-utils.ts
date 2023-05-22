@@ -1,6 +1,6 @@
 import { createAudioResource } from '@discordjs/voice';
-import { ChatInputCommandInteraction } from 'discord.js';
-import { guildObject, songObject } from '../../utils';
+import { ChatInputCommandInteraction, User, VoiceChannel } from 'discord.js';
+import { PlayerProps, guildObject, songObject } from '../../utils';
 import {
   getSpotifyPlaylist,
   getSpotifyTrack,
@@ -9,6 +9,7 @@ import {
   searchForTrack,
 } from './play-handleTracks';
 import play from 'play-dl';
+import { stopAudioPlayer } from './stop-subcommand';
 
 /*     ERROR CODES       */
 
@@ -16,8 +17,10 @@ export enum errorCodes {
   'force_playlist' = '🙏 Извините, но вы не можете запустить плейлист сразу! ',
   'no_permission' = '🙏 Извините, но у меня нет прав на подключение к вашему голосовому каналу.',
   'no_result' = '🙏 Извините, но я не смог найти ни одного результата по вашему запросу.',
-  'not_in_voice' = '🚪 Бот не был в аудио канале, поэтому плеер был остановлен.',
+  'bad_request' = '🙏 Извините, но я не могу воспроизвести этот трек.',
   'is_live' = `🙏 Извините, но я не могу воспроизвести стримы.`,
+  'not_in_voice' = '🚪 Бот не был в аудио канале, поэтому плеер был остановлен.',
+  'nobody_is_listening' = '🐁 Никто не слушает музыку, поэтому плеер был остановлен.',
 }
 
 /*     FUNCTIONS      */
@@ -97,4 +100,42 @@ export async function firstObjectToAudioResource(
   return createAudioResource(stream.stream, {
     inputType: stream.type,
   });
+}
+
+export async function ensureValidVoiceConnection(
+  voiceChannel: VoiceChannel,
+  props: PlayerProps
+) {
+  const { client, guildPlayer } = props;
+
+  if (!isBotInVoice(voiceChannel, client.user as User)) {
+    await stopAudioPlayer(errorCodes.not_in_voice, { client, guildPlayer });
+    return false;
+  }
+
+  if (!isSomeoneListening(voiceChannel)) {
+    await stopAudioPlayer(errorCodes.nobody_is_listening, {
+      client,
+      guildPlayer,
+    });
+    return false;
+  }
+
+  return true;
+}
+
+export function isBotInVoice(voiceChannel: VoiceChannel, botUser: User) {
+  if (voiceChannel.members.get(botUser.id)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export function isSomeoneListening(voiceChannel: VoiceChannel) {
+  if (voiceChannel.members.size > 1) {
+    return true;
+  } else {
+    return false;
+  }
 }

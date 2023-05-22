@@ -1,4 +1,5 @@
 import {
+  ensureValidVoiceConnection,
   errorCodes,
   firstObjectToAudioResource,
   getPlaylistTitle,
@@ -79,38 +80,22 @@ export async function execute(
     guildPlayer.voiceConnection.joinConfig.channelId
   ) as VoiceChannel;
 
-  const { playerMessage, playerThread, playerEmbed } = guildPlayer.embed;
+  if (!hasEmptyQueue)
+    await ensureValidVoiceConnection(voiceChannel, { client, guildPlayer });
 
-  // If bot is not in voice channel and queue is empty, stop the player
-  if (!voiceChannel.members.get(interaction.client.user.id) && !hasEmptyQueue) {
-    await interaction.editReply({
-      embeds: [client.errorEmbed(errorCodes.not_in_voice)],
-    });
-
-    if (playerEmbed) playerEmbed.setDescription(errorCodes.not_in_voice);
-    if (guildPlayer.audioPlayer) guildPlayer.audioPlayer.stop();
-    if (guildPlayer.voiceConnection) guildPlayer.voiceConnection.destroy();
-
-    try {
-      if (playerMessage && playerEmbed)
-        await playerMessage.edit({ embeds: [playerEmbed] });
-    } finally {
-      await client.deleteGuildPlayer(interaction.guildId);
-      if (playerThread) playerThread.delete();
-    }
-
-    return;
-  }
+  const isUsingForce = isForcedInput(interaction)
+    ? ` **без очереди!**`
+    : ` в очередь!`;
 
   if (guildPlayer.embed.playerThread)
     sendThreadEmbed(interaction, guildPlayer.embed.playerThread, {
       description: isSongsArray
         ? `📋 Пользователь добавил плейлист **${await getPlaylistTitle(
             userInput
-          )}** в очередь!`
-        : `📋 Пользователь добавил песню ${await getVideoTitle(
+          )}**` + isUsingForce
+        : `📋 Пользователь добавил песню **${await getVideoTitle(
             userInputData.song.url
-          )} в очередь!`,
+          )}**` + isUsingForce,
     }).catch(() => {});
 
   await interaction.editReply({
@@ -119,10 +104,10 @@ export async function execute(
         isSongsArray
           ? `🌿 Плейлист **${await getPlaylistTitle(
               userInput
-            )}** был успешно добавлен в очередь!`
-          : `🌿 Песня ${await getVideoTitle(
+            )}** был успешно добавлен` + isUsingForce
+          : `🌿 Песня **${await getVideoTitle(
               userInputData.song.url
-            )} была успешно добавлена в очередь!`
+            )}** была успешно добавлена` + isUsingForce
       ),
     ],
   });

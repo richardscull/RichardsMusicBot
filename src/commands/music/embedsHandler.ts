@@ -7,13 +7,14 @@ import {
   HexColorString,
 } from 'discord.js';
 import { getAverageColor } from 'fast-average-color-node';
-import { YouTubeVideo } from 'play-dl';
+import play from 'play-dl';
 import { client } from '../../client';
 import {
   guildObject,
   millisecondsToString,
   numberWithSpaces,
 } from '../../utils';
+import { AudioPlayerPlayingState } from '@discordjs/voice';
 
 interface defaultEmbedOptions {
   description: string;
@@ -37,20 +38,21 @@ export function sendThreadEmbed(
   return thread.send({ embeds: [createEmbed] });
 }
 
-export async function sendSongEmbed(
-  thread: AnyThreadChannel<boolean>,
-  video_data: YouTubeVideo,
-  reqest_by: string
-) {
-  const { title, channel, views, likes, thumbnails, url } = video_data;
+export async function sendSongEmbedToThread(guildPlayer: guildObject) {
+  const { queue, embed } = guildPlayer;
+
+  // Don't should be possible, but just in case.
+  if (queue[0].song.type === 'spotify') return;
+
+  const videoData = (await play.video_info(queue[0].song.url)).video_details;
+  const { title, channel, views, likes, thumbnails, url } = videoData;
 
   const createEmbed = new EmbedBuilder()
     .setAuthor({
       name: '💭 Сейчас играет:',
     })
     .setColor(
-      (await getAverageColor(video_data.thumbnails[3].url))
-        .hex as HexColorString
+      (await getAverageColor(videoData.thumbnails[3].url)).hex as HexColorString
     )
     .setTitle(title as string)
     .setURL(url)
@@ -73,24 +75,36 @@ export async function sendSongEmbed(
     )
     .setThumbnail(thumbnails[3].url)
     .setTimestamp()
-    .setFooter({ text: `📨 Запросил: ${reqest_by}` });
+    .setFooter({ text: `📨 Запросил: ${queue[0].user}` });
 
-  return thread.send({ embeds: [createEmbed] });
+  if (embed.playerThread) embed.playerThread.send({ embeds: [createEmbed] });
+
+  return;
 }
 
-export async function createMusicEmbed(
-  guildPlayer: guildObject,
-  videoData: YouTubeVideo
-) {
+export async function createMusicEmbed(guildPlayer: guildObject) {
   try {
-    const { title, url, thumbnails, channel, durationRaw, durationInSec } =
-      videoData;
-    const { status, queue } = guildPlayer;
+    const { status, queue, audioPlayer } = guildPlayer;
+
+    // Don't should be possible, but just in case.
+    if (queue[0].song.type === 'spotify') return;
+
+    const videoData = (await play.video_info(queue[0].song.url)).video_details;
+    const { title, url, thumbnails, channel, durationRaw } = videoData;
+
     if (!channel?.icons || !channel.name) return;
-    const startTime = queue[0].song.seek ? queue[0].song.seek * 1000 : 0;
+
+    const playerState = audioPlayer.state as AudioPlayerPlayingState;
+
+    let { playbackDuration } = playerState;
+
+    playbackDuration = queue[0].song.seek
+      ? playbackDuration + queue[0].song.seek * 1000
+      : playbackDuration;
+
     const progressBar = await createProgressBar(
-      startTime,
-      durationInSec * 1000,
+      playbackDuration,
+      videoData.durationInSec * 1000,
       8
     );
 
@@ -106,9 +120,11 @@ export async function createMusicEmbed(
       .setTitle(title as string)
       .setURL(url)
       .setDescription(
-        `${status.isPaused ? '⏸ | ' : ''}${
+        `${status.isPaused ? '⏸️ | ' : ''}${
           status.onRepeat ? '🔁 | ' : ''
-        }🎧 ${millisecondsToString(startTime)} ${progressBar} ${durationRaw}`
+        }🎧 ${millisecondsToString(
+          playbackDuration
+        )} ${progressBar} ${durationRaw}`
       )
       .setThumbnail(thumbnails[3].url)
       .setFooter({

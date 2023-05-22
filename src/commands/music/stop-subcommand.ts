@@ -3,7 +3,8 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../client/ExtendedClient';
-import { guildObject } from '../../utils';
+import { PlayerProps } from '../../utils';
+import { errorCodes } from './play-utils';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -16,7 +17,10 @@ export async function execute(
   client: ExtendedClient
 ) {
   const guildPlayer = await client.getGuildPlayer(interaction.guildId);
-  if (guildPlayer) await stopAudioPlayer(interaction, client, guildPlayer);
+
+  const reason = `🌿 Плеер остановил ${interaction.user.toString()}`;
+
+  if (guildPlayer) await stopAudioPlayer(reason, { client, guildPlayer });
 
   return await interaction.editReply({
     embeds: [client.successEmbed(`🌿 Плеер был успешно остановлен!`)],
@@ -24,32 +28,26 @@ export async function execute(
 }
 
 export async function stopAudioPlayer(
-  interaction: ChatInputCommandInteraction<'cached'>,
-  client: ExtendedClient,
-  guildPlayer: guildObject
+  reason: string | errorCodes,
+  props: PlayerProps
 ) {
-  if (!guildPlayer) return;
+  const { client, guildPlayer } = props;
 
-  await client.deleteGuildPlayer(interaction.guildId);
+  await client.deleteGuildPlayer(guildPlayer.guildId);
 
-  guildPlayer.queue = [];
-  guildPlayer.audioPlayer.stop();
-  guildPlayer.voiceConnection.destroy();
+  if (guildPlayer.interval) clearInterval(guildPlayer.interval);
 
-  if (!guildPlayer.embed) return;
+  if (guildPlayer.voiceConnection) guildPlayer.voiceConnection.destroy();
+
   const { playerEmbed, playerMessage, playerThread } = guildPlayer.embed;
 
-  if (!playerMessage || !playerThread || !playerEmbed) return;
+  if (playerEmbed) playerEmbed.setDescription(reason);
 
-  if (!playerEmbed.data.footer?.text) return;
+  if (playerEmbed && playerEmbed.data.footer)
+    playerEmbed.data.footer.text = playerEmbed.data.footer.text.split('|')[0];
 
-  playerEmbed.setDescription(
-    `🌧 Плеер остановил ` + interaction.user.toString()
-  );
+  if (playerMessage && playerEmbed)
+    await playerMessage.edit({ embeds: [playerEmbed] }).catch(() => {});
 
-  playerEmbed.data.footer.text = playerEmbed.data.footer.text.split('|')[0];
-
-  await playerMessage.edit({ embeds: [playerEmbed] }).catch(() => {});
-
-  await playerThread.delete();
+  if (playerThread) await playerThread.delete();
 }
