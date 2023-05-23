@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import Fastify from 'fastify';
 import { AddressInfo } from 'net';
 
@@ -21,6 +22,6 @@ export async function heartbeatInitializing() {
 
     const { port } = fastify.server.address() as AddressInfo;
 
-    console.log(`Server listening on port ${port} 🚀`);
+    console.log(chalk.green(`✅ Hearbeat listening on port ${port} 🚀`));
   });
 }
