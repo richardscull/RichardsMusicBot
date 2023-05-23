@@ -32,7 +32,7 @@ export async function execute(
 ) {
   const buttonsRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
     new ButtonBuilder()
-      .setURL('http://status.kawaii-programer.online/status/main') //Currently a placeholder, but I will make it work soon.
+      .setURL('http://status.kawaii-programer.online/status/main') 
       .setLabel('🌿 Веб-Статус')
       .setStyle(ButtonStyle.Link),
     new ButtonBuilder()
