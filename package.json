@@ -10,6 +10,7 @@
     "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
     "fast-average-color-node": "^2.6.0",
+    "fastify": "^4.17.0",
     "fs": "^0.0.1-security",
     "jsoning": "^0.13.23",
     "libsodium-wrappers": "^0.7.10",
