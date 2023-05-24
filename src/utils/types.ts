@@ -26,6 +26,7 @@ export interface PlayerProps {
 
 export interface songObject {
   user: string;
+  isForced?: boolean;
   song: {
     type: 'spotify' | 'youtube';
     url: string;
@@ -37,4 +38,11 @@ export type stringMenuOption = {
   label: string;
   description: string;
   value: string;
+};
+
+export type trackShortInfo = {
+  index?: number;
+  title: string;
+  url: string;
+  duration: number;
 };

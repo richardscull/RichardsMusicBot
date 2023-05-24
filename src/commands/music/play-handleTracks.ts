@@ -66,6 +66,10 @@ async function searchForTrack(
           url: interaction.values[0],
         },
       } as songObject;
+    })
+    .then((song) => {
+      song.isForced = isForcedInput(interaction);
+      return song;
     });
 }
 
@@ -80,6 +84,7 @@ async function getYouTubeTrack(
 
     return {
       user: `${interaction.user.username}#${interaction.user.discriminator}`,
+      isForced: isForcedInput(interaction),
       song: {
         type: 'youtube',
         url: url,
@@ -131,6 +136,7 @@ async function getYouTubePlaylist(
   return (await playlist.all_videos()).map((video) => {
     return {
       user: `${interaction.user.username}#${interaction.user.discriminator}`,
+      isForced: false,
       song: {
         type: 'youtube',
         url: video.url,
@@ -150,6 +156,7 @@ async function getSpotifyPlaylist(
   return (await playlist.all_tracks()).map((track: SpotifyTrack) => {
     return {
       user: `${interaction.user.username}#${interaction.user.discriminator}`,
+      isForced: false,
       song: {
         type: 'spotify',
         url: track.url,

@@ -1,6 +1,11 @@
 import { createAudioResource } from '@discordjs/voice';
 import { ChatInputCommandInteraction, User, VoiceChannel } from 'discord.js';
-import { PlayerProps, guildObject, songObject } from '../../utils';
+import {
+  PlayerProps,
+  guildObject,
+  songObject,
+  trackShortInfo,
+} from '../../utils';
 import {
   getSpotifyPlaylist,
   getSpotifyTrack,
@@ -8,7 +13,7 @@ import {
   getYouTubeTrack,
   searchForTrack,
 } from './play-handleTracks';
-import play from 'play-dl';
+import play, { SpotifyTrack } from 'play-dl';
 import { stopAudioPlayer } from './stop-subcommand';
 
 /*     ERROR CODES       */
@@ -73,6 +78,27 @@ export async function getPlaylistTitle(url: string) {
 
 export async function getVideoTitle(url: string) {
   return (await play.video_info(url)).video_details.title;
+}
+
+export async function getTrackShortInfo(trackUrl: string) {
+  const { title, durationInSec, url } = (await play.video_info(trackUrl))
+    .video_details;
+  return {
+    title: title ? title : '-',
+    url: url,
+    duration: durationInSec * 1000,
+  } as trackShortInfo;
+}
+
+export async function getSpotifyTrackInfoShort(trackUrl: string) {
+  const { name, durationInMs, url } = (await play.spotify(
+    trackUrl
+  )) as SpotifyTrack;
+  return {
+    title: name,
+    url: url,
+    duration: durationInMs,
+  } as trackShortInfo;
 }
 
 export async function pushSong(guildPlayer: guildObject, song: songObject) {

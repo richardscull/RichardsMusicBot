@@ -28,6 +28,10 @@ import {
   data as chaptersSubcommand,
   execute as chaptersExecute,
 } from './chapters-subcommand';
+import {
+  data as queueSubcommand,
+  execute as queueExecute,
+} from './queue-subcommand';
 
 export const data = new SlashCommandBuilder()
   .setName('music')
@@ -38,7 +42,8 @@ export const data = new SlashCommandBuilder()
   .addSubcommand(stopSubcommand)
   .addSubcommand(repeatSubcommand)
   .addSubcommand(pauseSubcommand)
-  .addSubcommand(skipSubcommand);
+  .addSubcommand(skipSubcommand)
+  .addSubcommand(queueSubcommand);
 
 export async function execute(
   interaction: ChatInputCommandInteraction,
@@ -93,4 +98,5 @@ const subcommandFunctions: Record<
   pause: pauseExecute,
   skip: skipExecute,
   chapters: chaptersExecute,
+  queue: queueExecute,
 };

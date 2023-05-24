@@ -13,6 +13,7 @@ import {
   guildObject,
   millisecondsToString,
   numberWithSpaces,
+  trackShortInfo,
 } from '../../utils';
 import { AudioPlayerPlayingState } from '@discordjs/voice';
 
@@ -80,6 +81,24 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
   if (embed.playerThread) embed.playerThread.send({ embeds: [createEmbed] });
 
   return;
+}
+
+export async function convertToQueueEmbed(data: trackShortInfo[]) {
+  const createEmbed = new EmbedBuilder()
+    .setTitle('📜 Очередь')
+    .setDescription(
+      data
+        .map((item) => {
+          return `**${item.index ? item.index + '.' : '▶'}** [${item.title}](${
+            item.url
+          }) ⏳ ${millisecondsToString(item.duration)} `;
+        })
+        .join('\n')
+        .slice(0, 2048)
+    )
+    .setTimestamp();
+
+  return createEmbed;
 }
 
 export async function createMusicEmbed(guildPlayer: guildObject) {
