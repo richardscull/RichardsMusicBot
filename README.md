@@ -5,6 +5,11 @@
 </h1>
 <h4 align="center">🎶 Discord bot for playing music from youtube and spotify <h4>
 
+# 📋 Public Testing
+
+If you want to try the bot before self-hosting him, you can add already hosted version of the bot, by [clicking here!](https://discord.com/api/oauth2/authorize?client_id=967566153624997948&permissions=534856976704&scope=bot)
+
+
 # 🔧 Requirements
 
 To set up the self-hosted version of the bot, the following are required:
