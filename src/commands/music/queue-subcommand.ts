@@ -10,7 +10,7 @@ import { createListEmbed } from '../../utils/embedListPagination';
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
     .setName('queue')
-    .setDescription('очередь треко вщошрыфваощлавыфрощшз');
+    .setDescription('Функция просмотра очереди треков');
 };
 
 export async function execute(

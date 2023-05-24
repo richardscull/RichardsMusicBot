@@ -85,7 +85,6 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
 
 export async function convertToQueueEmbed(data: trackShortInfo[]) {
   const createEmbed = new EmbedBuilder()
-    .setColor('Default')
     .setTitle('📜 Очередь')
     .setDescription(
       data
