@@ -2,8 +2,10 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
+  entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
+  VoiceConnectionStatus,
 } from '@discordjs/voice';
 import {
   ChannelType,
@@ -47,6 +49,23 @@ export async function createGuildPlayer(
     channelId: voiceChannel.id,
     guildId: guildId,
     adapterCreator: guild.voiceAdapterCreator,
+  });
+
+  voiceConnection.on(VoiceConnectionStatus.Disconnected, async () => {
+    try {
+      await Promise.race([
+        entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
+        entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
+      ]);
+    } catch (error) {
+      const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+      if (!guildPlayer) return voiceConnection.destroy();
+
+      stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
+        client,
+        guildPlayer,
+      });
+    }
   });
 
   const audioPlayer = createAudioPlayer({
