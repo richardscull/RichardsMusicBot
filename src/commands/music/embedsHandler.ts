@@ -81,7 +81,7 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
   try {
     createEmbed.setThumbnail(thumbnails[22222].url);
   } catch (e) {
-    // In PR #30 I removed thumbnails.length - 1, because it was causing error.
+    // In commit #30 I removed thumbnails.length - 1, because it was causing error.
     // Don't remember why error could occured, so I will try to get more info about it.
     console.log('⚠️ Thumbnail error: ', e);
   }
@@ -164,7 +164,7 @@ export async function createMusicEmbed(guildPlayer: guildObject) {
         }`,
       });
   } catch (e) {
-    // In PR #30 I removed thumbnails.length - 1, because it was causing error.
+    // In commit #30 I removed thumbnails.length - 1, because it was causing error.
     // Don't remember why error could occured, so I will try to get more info about it.
     console.log('⚠️ Thumbnail error on player: ', e);
   }
