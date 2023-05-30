@@ -74,9 +74,17 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
         inline: true,
       }
     )
-    .setThumbnail(thumbnails[3].url)
+
     .setTimestamp()
     .setFooter({ text: `📨 Запросил: ${queue[0].user}` });
+
+  try {
+    createEmbed.setThumbnail(thumbnails[22222].url);
+  } catch (e) {
+    // In commit #30 I removed thumbnails.length - 1, because it was causing error.
+    // Don't remember why error could occured, so I will try to get more info about it.
+    console.log('⚠️ Thumbnail error: ', e);
+  }
 
   if (embed.playerThread) embed.playerThread.send({ embeds: [createEmbed] });
 
@@ -145,14 +153,20 @@ export async function createMusicEmbed(guildPlayer: guildObject) {
           playbackDuration
         )} ${progressBar} ${durationRaw}`
       )
-      .setThumbnail(thumbnails[3].url)
+      .setThumbnail(
+        thumbnails[thumbnails.length - 1]
+          ? thumbnails[thumbnails.length - 1].url
+          : 'https://i.imgur.com/WO45goR.png'
+      )
       .setFooter({
         text: `📨 Запросил: ${queue[0].user} ${
           queue.length - 1 ? `| 🎼 Треков в очереди: ${queue.length - 1}` : ''
         }`,
       });
   } catch (e) {
-    // Empty try/catch, to handle invalid thumbnail fetch.
+    // In commit #30 I removed thumbnails.length - 1, because it was causing error.
+    // Don't remember why error could occured, so I will try to get more info about it.
+    console.log('⚠️ Thumbnail error on player: ', e);
   }
 }
 
