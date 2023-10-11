@@ -34,10 +34,10 @@
     "nodemon": "^2.0.20",
     "prettier": "^2.8.1",
     "rimraf": "^3.0.2",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.5"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "build:start": "npm run deploy-commands",
     "start": "node build/index.js ",
     "dev": "concurrently \"tsc -w\" \"nodemon build/index.js --ignore *.json\"",
