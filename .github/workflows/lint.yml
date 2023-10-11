@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - develop
   pull_request:
     branches:
       - master
+      - develop
 
 jobs:
   lint:
@@ -50,6 +52,9 @@ jobs:
           else
           npm i
           fi
+
+      - name: Update typescript
+        run: npm install -D typescript@5.1
 
       - name: Test compile
         run: npm run build
