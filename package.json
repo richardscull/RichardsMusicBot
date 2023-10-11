@@ -37,7 +37,7 @@
     "typescript": "^4.9.5"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "build:start": "npm run deploy-commands",
     "start": "node build/index.js ",
     "dev": "concurrently \"tsc -w\" \"nodemon build/index.js --ignore *.json\"",
