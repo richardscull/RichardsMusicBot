@@ -43,6 +43,9 @@ jobs:
         with:
           node-version: 18
 
+      - name: Install typescript
+        uses: icrawl/action-tsc@v1
+
       - name: Install dependencies
         run: |
           if [ -e package-lock.json ]; then
