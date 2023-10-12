@@ -9,8 +9,6 @@ import { guildObject } from '../utils/types';
 export class ExtendedClient extends Client {
   musicPlayer = new Map<string, guildObject>();
 
-  ngrokUrl = '';
-
   database = {
     emojis: new Jsoning('emojis.json'),
   };
