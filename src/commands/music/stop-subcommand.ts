@@ -39,6 +39,8 @@ export async function stopAudioPlayer(
 
   if (guildPlayer.voiceConnection) guildPlayer.voiceConnection.destroy();
 
+  if (guildPlayer.audioPlayer) guildPlayer.audioPlayer.stop(true);
+
   const { playerEmbed, playerMessage, playerThread } = guildPlayer.embed;
 
   if (playerEmbed) playerEmbed.setDescription(reason);
