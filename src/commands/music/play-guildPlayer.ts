@@ -140,7 +140,8 @@ async function setAudioPlayerBehavior(
 
   audioPlayer.on(AudioPlayerStatus.Idle, async () => {
     const guildPlayer = await client.getGuildPlayer(interaction.guildId);
-    if (!guildPlayer) return;
+    if (!guildPlayer || !guildPlayer.voiceConnection.joinConfig.channelId)
+      return;
 
     clearInterval(guildPlayer.interval);
 
@@ -153,6 +154,15 @@ async function setAudioPlayerBehavior(
     we shift to a current song that has an updated seek position.  */
     if (!status.onRepeat || (queue[1] && queue[1].song.seek)) queue.shift();
 
+    const voiceChannel = client.channels.cache.get(
+      guildPlayer.voiceConnection.joinConfig.channelId
+    ) as VoiceChannel;
+
+    await ensureValidVoiceConnection(voiceChannel, {
+      client,
+      guildPlayer,
+    });
+
     if (queue.length) {
       const audioResource = await firstObjectToAudioResource(
         queue,
@@ -160,7 +170,10 @@ async function setAudioPlayerBehavior(
       );
       return guildPlayer.audioPlayer.play(audioResource);
     } else {
-      stopAudioPlayer(`🌧 Плеер закончил свою работу`, { client, guildPlayer });
+      await stopAudioPlayer(`🌧 Плеер закончил свою работу`, {
+        client,
+        guildPlayer,
+      });
     }
   });
 
