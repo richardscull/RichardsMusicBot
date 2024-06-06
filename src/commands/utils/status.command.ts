@@ -33,7 +33,7 @@ export async function execute(
   const buttonsRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
     new ButtonBuilder()
       .setURL('https://github.com/richardscull/RichardsMusicBot')
-      .setLabel('📂 GitHub')
+      .setLabel('‎ '.repeat(16) + '📂 GitHub' + '‎ '.repeat(16))
       .setStyle(ButtonStyle.Link)
   );
 
@@ -75,10 +75,11 @@ export async function execute(
         name: '🔧 Техническая информация',
         value:
           `‣ Версия бота: Загрузка...\n` +
+          `‣ Обновление было: Загрузка...\n` +
           `‣ Рестарт сервера был: ${time(
             Math.floor(Date.now() / 1000 - os.uptime()),
             'R'
-          )}`,
+          )}.`,
         inline: true,
       }
     )
@@ -92,17 +93,23 @@ export async function execute(
     fetchReply: true,
   });
 
-  const lastestCommitId = await axios({
+  const commitData = await axios({
     baseURL: 'https://api.github.com/',
     url: config.GITHUB_BRANCH_URL,
-  }).then((result) => result.data.sha as string);
+  }).then((result) => result.data);
+
+  const lastestCommitId = commitData.sha;
+  const lastestCommitDate = Math.floor(
+    new Date(commitData.commit.author.date).getTime() / 1000
+  );
 
   if (statusEmbed && statusEmbed.data && statusEmbed.data.fields) {
     statusEmbed.data.fields[1].value =
-      `‣ Версия бота: ${inlineCode(lastestCommitId.slice(0, 7))}\n` +
+      `‣ Версия бота: ${inlineCode(lastestCommitId.slice(0, 7))}.\n` +
+      `‣ Обновление было: ${time(lastestCommitDate, 'R')}.\n` +
       `‣ Рестарт сервера был: <t:${Math.floor(
         Date.now() / 1000 - os.uptime()
-      )}:R>`;
+      )}:R>.`;
   }
 
   const totalPing = statusMsg.createdTimestamp - interaction.createdTimestamp;
