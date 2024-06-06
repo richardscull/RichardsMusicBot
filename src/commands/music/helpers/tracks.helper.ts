@@ -81,6 +81,10 @@ export async function getVideoTitle(url: string) {
   return (await play.video_info(url)).video_details.title;
 }
 
+export async function getTrackInfo(trackUrl: string) {
+  return (await play.video_info(trackUrl)).video_details;
+}
+
 export async function getTrackShortInfo(trackUrl: string) {
   const { title, durationInSec, url } = (await play.video_info(trackUrl))
     .video_details;

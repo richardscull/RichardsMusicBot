@@ -45,7 +45,7 @@
     "build": "npm run clear && npx tsc",
     "start": "node build/index.js",
     "dev": "npx ts-node src/index.ts",
-    "deploy-commands:prod": "npm run deploy-commands && npm run start",
+    "deploy-commands:prod": "npm run build:deploy-commands && npm run start",
     "clear": "rimraf build/",
     "build:deploy-commands": "npm run build && node build/client/DeployCommands.js",
     "lint": "eslint . --ext .ts"
