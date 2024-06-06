@@ -10,7 +10,7 @@ import {
 } from '../../commands/music/helpers/tracks.helper';
 
 import { client } from '../../client';
-import { songObject } from '../../types';
+import { songObject, trackShortInfo } from '../../types';
 import PaginateOptions from './paginationTools';
 import { ConvertToQueueEmbed } from '../../commands/music/helpers/embeds.helper';
 
@@ -34,6 +34,8 @@ export default async function CreateListEmbed(
     .on('collect', async (reply) => {
       if (reply.customId === 'chapterSelect') return;
 
+      await reply.deferUpdate();
+
       if (reply.customId == 'right') {
         pageNum++;
       } else if (reply.customId == 'left') {
@@ -44,7 +46,7 @@ export default async function CreateListEmbed(
         pageNum = Math.floor((options.length - 1) / 10);
       }
 
-      await reply.update({
+      await reply.editReply({
         embeds: [
           client.GetSuccessEmbed(
             '⌛ Пожалуйста, подождите, идет загрузка трека...'
@@ -68,8 +70,8 @@ export default async function CreateListEmbed(
       options
     )) as songObject[];
 
-    const convertedUrlsToTitles = [];
-    for (const element of finalResult) {
+    const convertedUrlsToTitles = [] as trackShortInfo[];
+    const promises = finalResult.map(async (element) => {
       const { type, url } = element.song;
       let result;
 
@@ -79,8 +81,13 @@ export default async function CreateListEmbed(
         result = await getSpotifyTrackInfoShort(url);
       }
 
-      if (result) convertedUrlsToTitles.push(result);
-    }
+      if (result) return result;
+    });
+
+    const resolvedPromises = await Promise.all(promises);
+    resolvedPromises.forEach((element) => {
+      if (element) convertedUrlsToTitles.push(element);
+    });
 
     convertedUrlsToTitles.map((item, index) => {
       item.index = pageNum * 10 + index;

@@ -31,6 +31,8 @@ export default async function CreateMenuReply(
     .on('collect', async (reply) => {
       if (reply.customId === 'chapterSelect') return;
 
+      await reply.deferUpdate();
+
       if (reply.customId == 'right') {
         pageNum++;
       } else if (reply.customId == 'left') {

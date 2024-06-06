@@ -24,7 +24,7 @@ export async function execute(
   await interaction.editReply({
     embeds: [
       client.GetSuccessEmbed(
-        '⌛ Пожалуйста, подождите, идет загрузка трека...'
+        '⌛ Пожалуйста, подождите, идет загрузка списка треков...'
       ),
     ],
   });

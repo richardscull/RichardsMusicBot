@@ -126,7 +126,6 @@ export async function firstObjectToAudioResource(
 
   const stream = await play.stream(songObject[0].song.url, {
     seek: seek,
-    discordPlayerCompatibility: true,
   });
 
   return createAudioResource(stream.stream, {
