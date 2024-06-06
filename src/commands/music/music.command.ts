@@ -1,4 +1,8 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import {
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
+} from 'discord.js';
 import { ExtendedClient } from '../../client/ExtendedClient';
 import * as subcommands from './subcommands/index';
 
@@ -45,8 +49,12 @@ export async function execute(
     });
   }
 
-  Object.values(subcommands).find((subcommand) => {
-    if (subcommand.data.name === commandName)
+  for (const subcommand of Object.values(subcommands)) {
+    const fakeBuilder = new SlashCommandSubcommandBuilder();
+    const subcommandName = subcommand.data(fakeBuilder).name;
+
+    if (commandName === subcommandName) {
       return subcommand.execute(interaction, client);
-  });
+    }
+  }
 }
