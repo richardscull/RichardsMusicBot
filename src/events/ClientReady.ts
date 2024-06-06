@@ -8,7 +8,7 @@ module.exports = {
     log('🐬 Ready! Logged in as ' + client.user?.tag);
 
     client.user?.setPresence({
-      activities: [{ type: ActivityType.Listening, name: ' музыку 24/7 🎶' }],
+      activities: [{ type: ActivityType.Listening, name: ' музыку 24/7 🍃' }],
       status: 'online',
     });
   },
