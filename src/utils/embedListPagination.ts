@@ -7,12 +7,12 @@ import {
 import {
   getSpotifyTrackInfoShort,
   getTrackShortInfo,
-} from '../commands/music/helpers/play-utils';
+} from '../commands/music/helpers/tracks.helper';
 
 import { client } from '../client';
 import { songObject } from './types';
 import { paginateOptions } from './paginationTools';
-import { convertToQueueEmbed } from '../commands/music/helpers/embedsHandler';
+import { convertToQueueEmbed } from '../commands/music/helpers/embeds.helper';
 
 const buttonsRow = new ActionRowBuilder<ButtonBuilder>();
 

@@ -9,7 +9,7 @@ import play from 'play-dl';
 import { ExtendedClient } from '../../../client/ExtendedClient';
 import { createMenuReply } from '../../../utils/selectMenuHandler';
 import { songObject, stringMenuOption } from '../../../utils';
-import { sendThreadEmbed } from '../helpers/embedsHandler';
+import { sendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -52,7 +52,9 @@ export async function execute(
       interactionMenu.update({
         components: [],
         embeds: [
-          client.GetSuccessEmbed(`🌿 Переключаемся на главу ${choiceDes.label}`),
+          client.GetSuccessEmbed(
+            `🌿 Переключаемся на главу ${choiceDes.label}`
+          ),
         ],
       });
 
@@ -74,7 +76,9 @@ export async function execute(
     } else {
       return interactionMenu.update({
         components: [],
-        embeds: [client.GetErrorEmbed(`❌ Пока вы выбирали, трек был изменен!`)],
+        embeds: [
+          client.GetErrorEmbed(`❌ Пока вы выбирали, трек был изменен!`),
+        ],
       });
     }
   }

@@ -12,7 +12,7 @@ import {
   getYouTubePlaylist,
   getYouTubeTrack,
   searchForTrack,
-} from './play-handleTracks';
+} from '../HandleTracks';
 import play, { SpotifyTrack } from 'play-dl';
 import { stopAudioPlayer } from '../subcommands/stop.subcommand';
 

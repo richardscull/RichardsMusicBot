@@ -7,11 +7,31 @@ import * as fs from 'fs';
 import { guildObject } from '../utils/types';
 
 export class ExtendedClient extends Client {
-  MusicPlayer = new Map<string, guildObject>();
-
-  Database = {
+  public MusicPlayer = new Map<string, guildObject>();
+  public Database = {
     emojis: new Jsoning('emojis.json'),
   };
+
+  GetSuccessEmbed = (Title: string): EmbedBuilder => {
+    return new EmbedBuilder();
+  };
+
+  GetErrorEmbed = (Title: string): EmbedBuilder => {
+    return new EmbedBuilder();
+  };
+
+  SendEmbed = (interaction: any, embed: EmbedBuilder): Promise<any> => {
+    return Promise.resolve();
+  };
+
+  public constructor(intents: any) {
+    super({ intents });
+
+    const embedHandler = new Embeds();
+    this.GetSuccessEmbed = embedHandler.GetSuccessEmbed;
+    this.GetErrorEmbed = embedHandler.GetErrorEmbed;
+    this.SendEmbed = embedHandler.SendEmbed;
+  }
 
   public async DiscordLogin() {
     this.loadEvents();
@@ -30,6 +50,23 @@ export class ExtendedClient extends Client {
         refresh_token: config.SPOTIFY_REFRESH_TOKEN,
         market: config.SPOTIFY_MARKET,
       },
+    });
+  }
+
+  private loadEvents() {
+    const eventsDir = path.join(__dirname, '..', 'events');
+    fs.readdir(eventsDir, (err, files) => {
+      if (err) throw new Error("Couldn't find the events dir!");
+      else {
+        files.forEach((file) => {
+          const event = require(eventsDir + '/' + file);
+          if (event.once) {
+            this.once(event.name, (...args) => event.execute(...args));
+          } else {
+            this.on(event.name, (...args) => event.execute(...args));
+          }
+        });
+      }
     });
   }
 
@@ -62,24 +99,23 @@ export class ExtendedClient extends Client {
     }
   }
 
-  private loadEvents() {
-    const eventsDir = path.join(__dirname, '..', 'events');
-    fs.readdir(eventsDir, (err, files) => {
-      if (err) throw new Error("Couldn't find the events dir!");
-      else {
-        files.forEach((file) => {
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const event = require(eventsDir + '/' + file);
-          if (event.once) {
-            this.once(event.name, (...args) => event.execute(...args));
-          } else {
-            this.on(event.name, (...args) => event.execute(...args));
-          }
-        });
-      }
-    });
+  public async GetEmoji(emojiName: string) {
+    if (this.Database.emojis.has(emojiName)) {
+      const emojiId = await this.Database.emojis.get(emojiName);
+      return `<:${emojiName}:${emojiId}>`;
+    }
   }
 
+  public async GetGuildPlayer(guildID: string) {
+    if (this.MusicPlayer.has(guildID)) return this.MusicPlayer.get(guildID);
+  }
+
+  public async DeleteGuildPlayer(guildID: string) {
+    if (this.MusicPlayer.has(guildID)) return this.MusicPlayer.delete(guildID);
+  }
+}
+
+class Embeds {
   public GetSuccessEmbed(Title: string) {
     const createEmbed = new EmbedBuilder()
       .setTitle(Title.slice(0, 255))
@@ -94,21 +130,6 @@ export class ExtendedClient extends Client {
       .setColor('Red')
       .setTimestamp();
     return createEmbed;
-  }
-
-  public async GetEmoji(emojiName: string) {
-    if (this.Database.emojis.has(emojiName)) {
-      const emojiId = await this.Database.emojis.get(emojiName);
-      return `<:${emojiName}:${emojiId}>`;
-    }
-  }
-
-  public async GetGuildPlayer(guildID: string) {
-    if (this.MusicPlayer.has(guildID)) return this.MusicPlayer.get(guildID);
-  }
-
-  public async DeleteGuildPlayer(guildID: string) {
-    if (this.MusicPlayer.has(guildID)) return this.MusicPlayer.delete(guildID);
   }
 
   public async SendEmbed(interaction: any, embed: EmbedBuilder) {

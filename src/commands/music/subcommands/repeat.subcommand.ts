@@ -3,7 +3,7 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { sendThreadEmbed } from '../helpers/embedsHandler';
+import { sendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand

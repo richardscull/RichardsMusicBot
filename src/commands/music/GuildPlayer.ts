@@ -14,16 +14,19 @@ import {
   VoiceChannel,
 } from 'discord.js';
 
-import { ExtendedClient } from '../../../client/ExtendedClient';
-import { guildObject } from '../../../utils';
+import { ExtendedClient } from '../../client/ExtendedClient';
+import { guildObject } from '../../utils';
 
-import { createMusicEmbed, sendSongEmbedToThread } from './embedsHandler';
+import {
+  createMusicEmbed,
+  sendSongEmbedToThread,
+} from './helpers/embeds.helper';
 import {
   ensureValidVoiceConnection,
   errorCodes,
   firstObjectToAudioResource,
-} from './play-utils';
-import { stopAudioPlayer } from '../subcommands/stop.subcommand';
+} from './helpers/tracks.helper';
+import { stopAudioPlayer } from './subcommands/stop.subcommand';
 
 export async function createGuildPlayer(
   interaction: ChatInputCommandInteraction<'cached'>,

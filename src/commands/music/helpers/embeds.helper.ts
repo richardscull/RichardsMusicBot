@@ -42,7 +42,7 @@ export function sendThreadEmbed(
 export async function sendSongEmbedToThread(guildPlayer: guildObject) {
   const { queue, embed } = guildPlayer;
 
-  // Don't should be possible, but just in case.
+  // Shouldn't be possible, but just in case.
   if (queue[0].song.type === 'spotify') return;
 
   const videoData = (await play.video_info(queue[0].song.url)).video_details;

@@ -4,7 +4,7 @@ import {
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
 import { PlayerProps } from '../../../utils';
-import { errorCodes } from '../helpers/play-utils';
+import { errorCodes } from '../helpers/tracks.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand

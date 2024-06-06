@@ -4,7 +4,7 @@ import {
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
 import { pluralize } from '../../../utils/pluralize';
-import { sendThreadEmbed } from '../helpers/embedsHandler';
+import { sendThreadEmbed } from '../helpers/embeds.helper';
 import { stopAudioPlayer } from './stop.subcommand';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {

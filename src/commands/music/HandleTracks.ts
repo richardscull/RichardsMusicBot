@@ -1,7 +1,7 @@
-import { errorCodes, isForcedInput } from './play-utils';
+import { errorCodes, isForcedInput } from './helpers/tracks.helper';
 import play, { SpotifyPlaylist, SpotifyTrack, YouTubeVideo } from 'play-dl';
-import { numberWithDots, songObject } from '../../../utils';
-import { client } from '../../../client';
+import { numberWithDots, songObject } from '../../utils';
+import { client } from '../../client';
 import {
   ActionRowBuilder,
   ChatInputCommandInteraction,

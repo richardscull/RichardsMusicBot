@@ -8,15 +8,15 @@ import {
   pushSong,
   spliceSong,
   validateInput,
-} from '../helpers/play-utils';
+} from '../helpers/tracks.helper';
 import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
   VoiceChannel,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { createGuildPlayer } from '../helpers/play-guildPlayer';
-import { sendThreadEmbed } from '../helpers/embedsHandler';
+import { createGuildPlayer } from '../GuildPlayer';
+import { sendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -98,8 +98,9 @@ export async function execute(
           )}**` + isUsingForce,
     }).catch(() => {});
 
-
-    client.SendEmbed(interaction,  client.GetSuccessEmbed(
+  await client.SendEmbed(
+    interaction,
+    client.GetSuccessEmbed(
       isSongsArray
         ? `🌿 Плейлист **${await getPlaylistTitle(
             userInput
@@ -107,20 +108,8 @@ export async function execute(
         : `🌿 Песня **${await getVideoTitle(
             userInputData.song.url
           )}** была успешно добавлена` + isUsingForce
-    ))
-  // await interaction.editReply({
-  //   embeds: [
-  //     client.successEmbed(
-  //       isSongsArray
-  //         ? `🌿 Плейлист **${await getPlaylistTitle(
-  //             userInput
-  //           )}** был успешно добавлен` + isUsingForce
-  //         : `🌿 Песня **${await getVideoTitle(
-  //             userInputData.song.url
-  //           )}** была успешно добавлена` + isUsingForce
-  //     ),
-  //   ],
-  // });
+    )
+  );
 
   if (guildPlayer.queue.length <= 1 || hasEmptyQueue) {
     const audioResource = await firstObjectToAudioResource(
