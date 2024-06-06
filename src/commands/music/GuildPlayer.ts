@@ -109,8 +109,11 @@ async function setAudioPlayerBehavior(
 
   audioPlayer.on(AudioPlayerStatus.Playing, async () => {
     const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
-
     if (!guildPlayer) return;
+
+    const isPaused = guildPlayer.status.isPaused === true;
+    if (isPaused) return (guildPlayer.status.isPaused = false);
+
     const { embed } = guildPlayer;
 
     embed.playerEmbed = await CreateMusicEmbed(guildPlayer);

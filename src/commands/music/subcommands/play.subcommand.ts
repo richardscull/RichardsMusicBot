@@ -48,6 +48,7 @@ export async function execute(
 
   log(`${interaction.user.username} used /music play`, userInputData);
 
+  // If userInputData is a string, it means it returns an error
   if (typeof userInputData === 'string') {
     return await interaction.editReply({
       embeds: [client.GetErrorEmbed(userInputData)],
