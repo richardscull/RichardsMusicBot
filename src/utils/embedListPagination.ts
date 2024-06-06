@@ -7,12 +7,12 @@ import {
 import {
   getSpotifyTrackInfoShort,
   getTrackShortInfo,
-} from '../commands/music/play-utils';
+} from '../commands/music/helpers/play-utils';
 
 import { client } from '../client';
 import { songObject } from './types';
 import { paginateOptions } from './paginationTools';
-import { convertToQueueEmbed } from '../commands/music/embedsHandler';
+import { convertToQueueEmbed } from '../commands/music/helpers/embedsHandler';
 
 const buttonsRow = new ActionRowBuilder<ButtonBuilder>();
 
@@ -46,7 +46,7 @@ export async function createListEmbed(
 
       await reply.update({
         embeds: [
-          client.successEmbed(
+          client.GetSuccessEmbed(
             '⌛ Пожалуйста, подождите, идет загрузка трека...'
           ),
         ],

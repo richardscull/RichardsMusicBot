@@ -32,10 +32,6 @@ export async function execute(
 ) {
   const buttonsRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
     new ButtonBuilder()
-      .setURL('http://status.kawaii-programer.online/status/main') 
-      .setLabel('🌿 Веб-Статус')
-      .setStyle(ButtonStyle.Link),
-    new ButtonBuilder()
       .setURL('https://github.com/richardscull/RichardsMusicBot')
       .setLabel('📂 GitHub')
       .setStyle(ButtonStyle.Link)

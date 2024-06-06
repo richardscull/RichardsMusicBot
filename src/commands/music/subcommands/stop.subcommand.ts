@@ -2,9 +2,9 @@ import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { PlayerProps } from '../../utils';
-import { errorCodes } from './play-utils';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { PlayerProps } from '../../../utils';
+import { errorCodes } from '../helpers/play-utils';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -16,14 +16,14 @@ export async function execute(
   interaction: ChatInputCommandInteraction<'cached'>,
   client: ExtendedClient
 ) {
-  const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+  const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
 
   const reason = `🌿 Плеер остановил ${interaction.user.toString()}`;
 
   if (guildPlayer) await stopAudioPlayer(reason, { client, guildPlayer });
 
   return await interaction.editReply({
-    embeds: [client.successEmbed(`🌿 Плеер был успешно остановлен!`)],
+    embeds: [client.GetSuccessEmbed(`🌿 Плеер был успешно остановлен!`)],
   });
 }
 
@@ -33,7 +33,7 @@ export async function stopAudioPlayer(
 ) {
   const { client, guildPlayer } = props;
 
-  await client.deleteGuildPlayer(guildPlayer.guildId);
+  await client.DeleteGuildPlayer(guildPlayer.guildId);
 
   if (guildPlayer.interval) clearInterval(guildPlayer.interval);
 

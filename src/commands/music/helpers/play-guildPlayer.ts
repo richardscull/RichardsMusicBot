@@ -14,8 +14,8 @@ import {
   VoiceChannel,
 } from 'discord.js';
 
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { guildObject } from '../../utils';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { guildObject } from '../../../utils';
 
 import { createMusicEmbed, sendSongEmbedToThread } from './embedsHandler';
 import {
@@ -23,7 +23,7 @@ import {
   errorCodes,
   firstObjectToAudioResource,
 } from './play-utils';
-import { stopAudioPlayer } from './stop-subcommand';
+import { stopAudioPlayer } from '../subcommands/stop.subcommand';
 
 export async function createGuildPlayer(
   interaction: ChatInputCommandInteraction<'cached'>,
@@ -40,7 +40,7 @@ export async function createGuildPlayer(
     interaction.channel instanceof StageChannel
   ) {
     interaction.editReply({
-      embeds: [client.errorEmbed(errorCodes.no_permission)],
+      embeds: [client.GetErrorEmbed(errorCodes.no_permission)],
     });
     return;
   }
@@ -58,7 +58,7 @@ export async function createGuildPlayer(
         entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
       ]);
     } catch (error) {
-      const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+      const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
       if (!guildPlayer) return voiceConnection.destroy();
 
       stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
@@ -90,7 +90,7 @@ export async function createGuildPlayer(
     },
   };
 
-  client.musicPlayer.set(guildId, guildPlayerProps);
+  client.MusicPlayer.set(guildId, guildPlayerProps);
   return guildPlayerProps as guildObject;
 }
 
@@ -100,12 +100,12 @@ async function setAudioPlayerBehavior(
   client: ExtendedClient
 ) {
   audioPlayer.on(AudioPlayerStatus.Paused, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
     if (guildPlayer) guildPlayer.status.isPaused = true;
   });
 
   audioPlayer.on(AudioPlayerStatus.Playing, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
 
     if (!guildPlayer) return;
     const { embed } = guildPlayer;
@@ -139,7 +139,7 @@ async function setAudioPlayerBehavior(
   });
 
   audioPlayer.on(AudioPlayerStatus.Idle, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
     if (!guildPlayer || !guildPlayer.voiceConnection.joinConfig.channelId)
       return;
 
@@ -178,7 +178,7 @@ async function setAudioPlayerBehavior(
   });
 
   async function onIntervalUpdate() {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
 
     if (!guildPlayer || !guildPlayer.voiceConnection.joinConfig.channelId)
       return;

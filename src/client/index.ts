@@ -14,9 +14,9 @@ export const client = new ExtendedClient({
 });
 
 async function serverInitializing() {
-  await client.discordLogin();
-  await heartbeatInitializing();
-  await client.registerCustomEmojis();
+  await client.DiscordLogin();
+  // await heartbeatInitializing();
+  await client.RegisterCustomEmojis();
 }
 
 serverInitializing();

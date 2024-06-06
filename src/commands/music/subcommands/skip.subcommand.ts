@@ -2,10 +2,10 @@ import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { pluralize } from '../../utils/pluralize';
-import { sendThreadEmbed } from './embedsHandler';
-import { stopAudioPlayer } from './stop-subcommand';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { pluralize } from '../../../utils/pluralize';
+import { sendThreadEmbed } from '../helpers/embedsHandler';
+import { stopAudioPlayer } from './stop.subcommand';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -24,7 +24,7 @@ export async function execute(
   client: ExtendedClient
 ) {
   const timesToSkip = interaction.options.getInteger('times');
-  const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+  const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
   if (!guildPlayer) return;
 
   if (timesToSkip) guildPlayer.queue = guildPlayer.queue.slice(timesToSkip - 1);
@@ -43,7 +43,7 @@ export async function execute(
     guildPlayer.audioPlayer.stop(true);
   }
 
-  const getEmbed = client.successEmbed(
+  const getEmbed = client.GetSuccessEmbed(
     timesToSkip
       ? `✅ ${timesToSkip} ${pluralize(timesToSkip, '', {
           oneObject: 'трек был пропущен',

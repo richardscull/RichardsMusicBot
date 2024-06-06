@@ -5,7 +5,7 @@ import {
   guildObject,
   songObject,
   trackShortInfo,
-} from '../../utils';
+} from '../../../utils';
 import {
   getSpotifyPlaylist,
   getSpotifyTrack,
@@ -14,7 +14,7 @@ import {
   searchForTrack,
 } from './play-handleTracks';
 import play, { SpotifyTrack } from 'play-dl';
-import { stopAudioPlayer } from './stop-subcommand';
+import { stopAudioPlayer } from '../subcommands/stop.subcommand';
 
 /*     ERROR CODES       */
 
@@ -121,6 +121,7 @@ export async function firstObjectToAudioResource(
 
   const stream = await play.stream(songObject[0].song.url, {
     seek: seek,
+    discordPlayerCompatibility: true,
   });
 
   return createAudioResource(stream.stream, {

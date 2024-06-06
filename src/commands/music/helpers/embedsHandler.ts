@@ -8,13 +8,13 @@ import {
 } from 'discord.js';
 import { getAverageColor } from 'fast-average-color-node';
 import play from 'play-dl';
-import { client } from '../../client';
+import { client } from '../../../client';
 import {
   guildObject,
   millisecondsToString,
   numberWithSpaces,
   trackShortInfo,
-} from '../../utils';
+} from '../../../utils';
 import { AudioPlayerPlayingState } from '@discordjs/voice';
 
 interface defaultEmbedOptions {
@@ -180,14 +180,14 @@ export async function createProgressBar(
   const emptyProgress = size - progress;
 
   return (
-    `${await client.getEmoji('ProgressBarStart')}` +
+    `${await client.GetEmoji('ProgressBarStart')}` +
     `${await client
-      .getEmoji('ProgressBarPlaying')
+      .GetEmoji('ProgressBarPlaying')
       .then((e) => e?.repeat(progress))}` +
-    `${await client.getEmoji('ProgressBarMedium')}` +
+    `${await client.GetEmoji('ProgressBarMedium')}` +
     `${await client
-      .getEmoji('ProgressBarWaiting')
+      .GetEmoji('ProgressBarWaiting')
       .then((e) => e?.repeat(emptyProgress))}` +
-    `${await client.getEmoji('ProgressBarEnd')}`
+    `${await client.GetEmoji('ProgressBarEnd')}`
   );
 }

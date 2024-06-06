@@ -10,7 +10,7 @@ module.exports = {
 };
 
 async function checkIfPlayerThread(Thread: ThreadChannel) {
-  const guildPlayer = await client.getGuildPlayer(Thread.guildId);
+  const guildPlayer = await client.GetGuildPlayer(Thread.guildId);
   if (guildPlayer && guildPlayer.embed.playerThread === Thread) {
     if (guildPlayer.embed.playerMessage)
       guildPlayer.embed.playerThread =

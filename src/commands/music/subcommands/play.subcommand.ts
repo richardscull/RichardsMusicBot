@@ -8,15 +8,15 @@ import {
   pushSong,
   spliceSong,
   validateInput,
-} from './play-utils';
+} from '../helpers/play-utils';
 import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
   VoiceChannel,
 } from 'discord.js';
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { createGuildPlayer } from './play-guildPlayer';
-import { sendThreadEmbed } from './embedsHandler';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { createGuildPlayer } from '../helpers/play-guildPlayer';
+import { sendThreadEmbed } from '../helpers/embedsHandler';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -46,16 +46,16 @@ export async function execute(
 
   if (typeof userInputData === 'string') {
     return await interaction.editReply({
-      embeds: [client.errorEmbed(userInputData)],
+      embeds: [client.GetErrorEmbed(userInputData)],
     });
   } else if (typeof userInputData === 'undefined') {
     return await interaction.editReply({
-      embeds: [client.errorEmbed(errorCodes.no_result)],
+      embeds: [client.GetErrorEmbed(errorCodes.no_result)],
     });
   }
 
-  const guildPlayer = (await client.getGuildPlayer(interaction.guildId))
-    ? await client.getGuildPlayer(interaction.guildId)
+  const guildPlayer = (await client.GetGuildPlayer(interaction.guildId))
+    ? await client.GetGuildPlayer(interaction.guildId)
     : await createGuildPlayer(interaction, client);
 
   if (!guildPlayer) return;
@@ -98,19 +98,29 @@ export async function execute(
           )}**` + isUsingForce,
     }).catch(() => {});
 
-  await interaction.editReply({
-    embeds: [
-      client.successEmbed(
-        isSongsArray
-          ? `🌿 Плейлист **${await getPlaylistTitle(
-              userInput
-            )}** был успешно добавлен` + isUsingForce
-          : `🌿 Песня **${await getVideoTitle(
-              userInputData.song.url
-            )}** была успешно добавлена` + isUsingForce
-      ),
-    ],
-  });
+
+    client.SendEmbed(interaction,  client.GetSuccessEmbed(
+      isSongsArray
+        ? `🌿 Плейлист **${await getPlaylistTitle(
+            userInput
+          )}** был успешно добавлен` + isUsingForce
+        : `🌿 Песня **${await getVideoTitle(
+            userInputData.song.url
+          )}** была успешно добавлена` + isUsingForce
+    ))
+  // await interaction.editReply({
+  //   embeds: [
+  //     client.successEmbed(
+  //       isSongsArray
+  //         ? `🌿 Плейлист **${await getPlaylistTitle(
+  //             userInput
+  //           )}** был успешно добавлен` + isUsingForce
+  //         : `🌿 Песня **${await getVideoTitle(
+  //             userInputData.song.url
+  //           )}** была успешно добавлена` + isUsingForce
+  //     ),
+  //   ],
+  // });
 
   if (guildPlayer.queue.length <= 1 || hasEmptyQueue) {
     const audioResource = await firstObjectToAudioResource(

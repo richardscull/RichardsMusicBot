@@ -3,8 +3,8 @@ import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { sendThreadEmbed } from './embedsHandler';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { sendThreadEmbed } from '../helpers/embedsHandler';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand.setName('pause').setDescription('Функция паузы трека');
@@ -14,7 +14,7 @@ export async function execute(
   interaction: ChatInputCommandInteraction<'cached'>,
   client: ExtendedClient
 ) {
-  const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+  const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
   if (!guildPlayer) return;
   const { audioPlayer, status, embed } = guildPlayer;
   const playerState = audioPlayer.state as AudioPlayerPlayingState;
@@ -22,7 +22,7 @@ export async function execute(
     ? audioPlayer.pause()
     : audioPlayer.unpause();
 
-  const getEmbed = client.successEmbed(
+  const getEmbed = client.GetSuccessEmbed(
     `🌿 Плеер был успешно ${
       status.isPaused ? 'снят с паузы!' : 'поставлен на паузу!'
     }`

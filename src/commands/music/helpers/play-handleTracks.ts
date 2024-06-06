@@ -1,7 +1,7 @@
 import { errorCodes, isForcedInput } from './play-utils';
 import play, { SpotifyPlaylist, SpotifyTrack, YouTubeVideo } from 'play-dl';
-import { numberWithDots, songObject } from '../../utils';
-import { client } from '../../client';
+import { numberWithDots, songObject } from '../../../utils';
+import { client } from '../../../client';
 import {
   ActionRowBuilder,
   ChatInputCommandInteraction,
@@ -53,7 +53,7 @@ async function searchForTrack(
       await interaction.update({
         components: [],
         embeds: [
-          client.successEmbed(
+          client.GetSuccessEmbed(
             `⌛ Пожалуйста, подождите, идет загрузка трека...`
           ),
         ],

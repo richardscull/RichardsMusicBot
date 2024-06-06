@@ -6,10 +6,10 @@ import {
 } from 'discord.js';
 import play from 'play-dl';
 
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { createMenuReply } from '../../utils/selectMenuHandler';
-import { songObject, stringMenuOption } from '../../utils';
-import { sendThreadEmbed } from './embedsHandler';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { createMenuReply } from '../../../utils/selectMenuHandler';
+import { songObject, stringMenuOption } from '../../../utils';
+import { sendThreadEmbed } from '../helpers/embedsHandler';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -21,7 +21,7 @@ export async function execute(
   interaction: ChatInputCommandInteraction<'cached'>,
   client: ExtendedClient
 ) {
-  const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+  const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
   if (!guildPlayer) return;
 
   const { queue, embed } = guildPlayer;
@@ -29,9 +29,10 @@ export async function execute(
   const videoData = (await play.video_info(queue[0].song.url)).video_details;
 
   if (videoData.chapters.length === 0)
-    return await interaction.editReply({
-      embeds: [client.errorEmbed(`❌ У этого ролика нету глав!`)],
-    });
+    return await client.SendEmbed(
+      interaction,
+      client.GetErrorEmbed(`❌ У этого ролика нету глав!`)
+    );
 
   const map = videoData.chapters.map((chapter, index) => ({
     label: chapter.title.slice(0, 99),
@@ -51,7 +52,7 @@ export async function execute(
       interactionMenu.update({
         components: [],
         embeds: [
-          client.successEmbed(`🌿 Переключаемся на главу ${choiceDes.label}`),
+          client.GetSuccessEmbed(`🌿 Переключаемся на главу ${choiceDes.label}`),
         ],
       });
 
@@ -73,7 +74,7 @@ export async function execute(
     } else {
       return interactionMenu.update({
         components: [],
-        embeds: [client.errorEmbed(`❌ Пока вы выбирали, трек был изменен!`)],
+        embeds: [client.GetErrorEmbed(`❌ Пока вы выбирали, трек был изменен!`)],
       });
     }
   }

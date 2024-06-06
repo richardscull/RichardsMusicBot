@@ -10,7 +10,7 @@ module.exports = {
 };
 
 async function checkIfPlayerMessage(Message: Message<true>) {
-  const guildPlayer = await client.getGuildPlayer(Message.guildId);
+  const guildPlayer = await client.GetGuildPlayer(Message.guildId);
   if (guildPlayer && guildPlayer.embed.playerMessage === Message) {
     const { thread: deletedMessageThread } = Message;
     if (Message.channel instanceof StageChannel) return;

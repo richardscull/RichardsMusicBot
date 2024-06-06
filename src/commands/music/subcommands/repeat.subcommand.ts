@@ -2,8 +2,8 @@ import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { sendThreadEmbed } from './embedsHandler';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { sendThreadEmbed } from '../helpers/embedsHandler';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -15,13 +15,13 @@ export async function execute(
   interaction: ChatInputCommandInteraction<'cached'>,
   client: ExtendedClient
 ) {
-  const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+  const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
   if (!guildPlayer) return;
 
   const { status, embed } = guildPlayer;
   status.onRepeat = status.onRepeat ? false : true;
 
-  const getEmbed = client.successEmbed(
+  const getEmbed = client.GetSuccessEmbed(
     `🌿 Функция зацикливания ${status.onRepeat ? 'включена!' : 'выключена!'}`
   );
 
