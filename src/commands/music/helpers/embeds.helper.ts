@@ -1,6 +1,9 @@
 import {
+  ActionRowBuilder,
   AnyThreadChannel,
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   ChatInputCommandInteraction,
   ColorResolvable,
   EmbedBuilder,
@@ -35,7 +38,7 @@ export async function SendThreadEmbed(
     .setDescription(options.description.slice(0, 255))
     .setColor(embedColor)
     .setTimestamp();
-    
+
   return await thread.send({ embeds: [createEmbed] }).catch(() => {
     error('Failed to send embed to thread');
   });
@@ -57,7 +60,6 @@ export async function SendSongEmbedToThread(guildPlayer: guildObject) {
     })
     .setColor(embedColor)
     .setTitle(title || 'Неизвестно')
-    .setURL(url)
     .setThumbnail(await getValidImage(thumbnails))
     .setFields(
       {
@@ -69,12 +71,19 @@ export async function SendSongEmbedToThread(guildPlayer: guildObject) {
         value: numberWith(views, ' '),
       }
     )
-
-    .setTimestamp()
     .setFooter({ text: `📨 Запросил: ${queue[0].user}`.slice(0, 255) });
 
+  const actionRowWithLink = new ActionRowBuilder<ButtonBuilder>().setComponents(
+    new ButtonBuilder()
+      .setURL(url)
+      .setLabel('👀 Посмотреть на YouTube')
+      .setStyle(ButtonStyle.Link)
+  );
+
   if (embed.playerThread)
-    embed.playerThread.send({ embeds: [createEmbed] }).catch(() => {});
+    embed.playerThread
+      .send({ embeds: [createEmbed], components: [actionRowWithLink] })
+      .catch(() => {});
 
   return;
 }

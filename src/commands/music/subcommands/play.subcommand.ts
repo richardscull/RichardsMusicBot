@@ -46,8 +46,6 @@ export async function execute(
   const userInputData = await validateInput(userInput, interaction);
   const isSongsArray = Array.isArray(userInputData);
 
-  log(`${interaction.user.username} used /music play`, userInputData);
-
   // If userInputData is a string, it means it returns an error
   if (typeof userInputData === 'string') {
     return await interaction.editReply({
