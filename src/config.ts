@@ -75,7 +75,7 @@ export class Config {
     const defaultGithubBranch =
       'repos/richardscull/RichardsMusicBot/commits/master';
 
-    GITHUB_BRANCH_URL = GITHUB_BRANCH_URL
+    process.env.GITHUB_BRANCH_URL = GITHUB_BRANCH_URL
       ? GITHUB_BRANCH_URL
       : defaultGithubBranch;
   }

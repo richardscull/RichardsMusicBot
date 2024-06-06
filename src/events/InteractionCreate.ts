@@ -1,6 +1,8 @@
 import { Events, ChatInputCommandInteraction } from 'discord.js';
 import { client } from '../client/index';
 import * as commandModules from '../commands';
+import { error } from '../utils/logger';
+
 const commands = Object(commandModules);
 
 module.exports = {
@@ -13,12 +15,12 @@ module.exports = {
 
     try {
       await commands[commandName].execute(interaction, client);
-    } catch (error: any) {
+    } catch (err: any) {
       error(
         `\n❌ An error has occurred while executing /${
           interaction.commandName
         } ${subcommand ? subcommand + ' ' : ''}|`,
-        error
+        err
       );
 
       const errorMsg =
