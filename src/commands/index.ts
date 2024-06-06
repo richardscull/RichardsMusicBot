@@ -6,12 +6,14 @@ const readDirectory = (dir: string) => {
     const filePath = path.resolve(dir, file);
     const stat = fs.statSync(filePath);
 
-    const isCommand = file.includes('command') && file.endsWith('.js');
+    const isCommand =
+      file.includes('command') &&
+      (file.endsWith('.js') || file.endsWith('.ts'));
 
     if (stat.isDirectory()) {
       readDirectory(filePath);
-    } else if (isCommand && file !== 'index.js') {
-      const name = file.split('.command.js')[0];
+    } else if (isCommand && file !== 'index.js' && file !== 'index.ts') {
+      const name = file.split('.command')[0];
       const importedModule = require(filePath);
       exports[name] = importedModule;
     }
