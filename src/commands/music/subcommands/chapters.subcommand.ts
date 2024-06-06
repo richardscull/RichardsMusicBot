@@ -7,9 +7,9 @@ import {
 import play from 'play-dl';
 
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { createMenuReply } from '../../../utils/selectMenuHandler';
-import { songObject, stringMenuOption } from '../../../utils';
 import { sendThreadEmbed } from '../helpers/embeds.helper';
+import CreateMenuReply from '../../../utils/embeds/selectMenuHandler';
+import { songObject, stringMenuOption } from '../../../types';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -40,7 +40,7 @@ export async function execute(
     value: index.toString(),
   }));
 
-  await createMenuReply(interaction, map, handleUserChoice);
+  await CreateMenuReply(interaction, map, handleUserChoice);
 
   async function handleUserChoice(
     choiceDes: stringMenuOption,

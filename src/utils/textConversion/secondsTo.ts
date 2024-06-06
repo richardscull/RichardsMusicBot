@@ -1,4 +1,4 @@
-export function secondsToDhm(seconds: number) {
+export function SecondsToDhm(seconds: number) {
   seconds = Number(seconds);
   const d = Math.floor(seconds / (3600 * 24));
   const h = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -10,7 +10,7 @@ export function secondsToDhm(seconds: number) {
   return dDisplay + hDisplay + mDisplay;
 }
 
-export function millisecondsToString(ms: number): string {
+export function MillisecondsToString(ms: number): string {
   const date = new Date(ms);
   let hours = date.getUTCHours().toString().padStart(2, '0');
   const minutes = date.getUTCMinutes().toString().padStart(2, '0');

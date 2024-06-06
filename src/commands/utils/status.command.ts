@@ -15,7 +15,7 @@ import { ExtendedClient } from '../../client/ExtendedClient';
 import axios from 'axios';
 import config from '../../config';
 import path from 'path';
-import { pluralize } from '../../utils/pluralize';
+import Pluralize from '../../utils/textConversion/pluralize';
 
 export const data = new SlashCommandBuilder()
   .setName('status')
@@ -57,13 +57,13 @@ export async function execute(
         name: bold(`📋 Общая информация`).toString(),
         value:
           `‣ Бот установлен на ${bold(guildsCached.toString())} ` +
-          pluralize(guildsCached, 'сервер', {
+          Pluralize(guildsCached, 'сервер', {
             oneObject: 'е',
             manyObjects: 'ах',
           }) +
           `.\n` +
           `‣ Бот обслуживает ${bold(usersInGuilds)} ` +
-          pluralize(guildsCached, 'пользовател', {
+          Pluralize(guildsCached, 'пользовател', {
             oneObject: 'я',
             manyObjects: 'ей',
           }) +

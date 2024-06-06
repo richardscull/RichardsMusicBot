@@ -4,8 +4,8 @@ import {
 } from 'discord.js';
 
 import { ExtendedClient } from '../../../client/ExtendedClient';
+import CreateListEmbed from '../../../utils/embeds/embedListPagination';
 
-import { createListEmbed } from '../../../utils/embedListPagination';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -24,9 +24,11 @@ export async function execute(
 
   await interaction.editReply({
     embeds: [
-      client.GetSuccessEmbed('⌛ Пожалуйста, подождите, идет загрузка трека...'),
+      client.GetSuccessEmbed(
+        '⌛ Пожалуйста, подождите, идет загрузка трека...'
+      ),
     ],
   });
 
-  return await createListEmbed(interaction, queue);
+  return await CreateListEmbed(interaction, queue);
 }

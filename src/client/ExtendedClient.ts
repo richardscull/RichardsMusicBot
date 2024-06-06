@@ -4,7 +4,7 @@ import config from '../config';
 import * as play from 'play-dl';
 import path from 'path';
 import * as fs from 'fs';
-import { guildObject } from '../utils/types';
+import { guildObject } from '../types';
 
 export class ExtendedClient extends Client {
   public MusicPlayer = new Map<string, guildObject>();

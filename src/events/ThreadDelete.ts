@@ -4,18 +4,21 @@ import { client } from '../client/index';
 module.exports = {
   name: Events.ThreadDelete,
   async execute(Thread: ThreadChannel) {
-    if (Thread.ownerId === Thread.client.user.id)
-      await checkIfPlayerThread(Thread);
+    const isCreatedByBot = Thread.ownerId === Thread.client.user.id;
+    if (isCreatedByBot) await recreatePlayerThread(Thread);
   },
 };
 
-async function checkIfPlayerThread(Thread: ThreadChannel) {
-  const guildPlayer = await client.GetGuildPlayer(Thread.guildId);
-  if (guildPlayer && guildPlayer.embed.playerThread === Thread) {
-    if (guildPlayer.embed.playerMessage)
-      guildPlayer.embed.playerThread =
-        await guildPlayer.embed.playerMessage.startThread({
-          name: '🔊 Музыкальный плеер',
-        });
-  }
+async function recreatePlayerThread(Thread: ThreadChannel) {
+  const currentGuildPlayer = await client.GetGuildPlayer(Thread.guildId);
+  const isDeletedThreadWasPlayerThread =
+    currentGuildPlayer?.embed.playerThread === Thread;
+
+  if (!currentGuildPlayer || !isDeletedThreadWasPlayerThread) return;
+  if (!currentGuildPlayer.embed.playerMessage) return;
+
+  currentGuildPlayer.embed.playerThread =
+    await currentGuildPlayer.embed.playerMessage.startThread({
+      name: '🔊 Музыкальный плеер',
+    });
 }

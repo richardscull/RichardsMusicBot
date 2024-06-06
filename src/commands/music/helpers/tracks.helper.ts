@@ -1,11 +1,6 @@
 import { createAudioResource } from '@discordjs/voice';
 import { ChatInputCommandInteraction, User, VoiceChannel } from 'discord.js';
-import {
-  PlayerProps,
-  guildObject,
-  songObject,
-  trackShortInfo,
-} from '../../../utils';
+
 import {
   getSpotifyPlaylist,
   getSpotifyTrack,
@@ -15,6 +10,12 @@ import {
 } from '../HandleTracks';
 import play, { SpotifyTrack } from 'play-dl';
 import { stopAudioPlayer } from '../subcommands/stop.subcommand';
+import {
+  PlayerProps,
+  guildObject,
+  songObject,
+  trackShortInfo,
+} from '../../../types';
 
 /*     ERROR CODES       */
 

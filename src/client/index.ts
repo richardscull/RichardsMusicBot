@@ -1,6 +1,5 @@
 import { GatewayIntentBits, Partials } from 'discord.js';
 import { ExtendedClient } from './ExtendedClient';
-import { heartbeatInitializing } from '../utils/heartbeat';
 export const client = new ExtendedClient({
   intents: [
     GatewayIntentBits.Guilds,

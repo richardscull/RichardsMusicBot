@@ -15,7 +15,6 @@ import {
 } from 'discord.js';
 
 import { ExtendedClient } from '../../client/ExtendedClient';
-import { guildObject } from '../../utils';
 
 import {
   createMusicEmbed,
@@ -27,6 +26,7 @@ import {
   firstObjectToAudioResource,
 } from './helpers/tracks.helper';
 import { stopAudioPlayer } from './subcommands/stop.subcommand';
+import { guildObject } from '../../types';
 
 export async function createGuildPlayer(
   interaction: ChatInputCommandInteraction<'cached'>,

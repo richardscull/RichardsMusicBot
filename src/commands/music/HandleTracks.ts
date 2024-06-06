@@ -1,6 +1,5 @@
 import { errorCodes, isForcedInput } from './helpers/tracks.helper';
 import play, { SpotifyPlaylist, SpotifyTrack, YouTubeVideo } from 'play-dl';
-import { numberWithDots, songObject } from '../../utils';
 import { client } from '../../client';
 import {
   ActionRowBuilder,
@@ -8,6 +7,8 @@ import {
   ComponentType,
   StringSelectMenuBuilder,
 } from 'discord.js';
+import numberWith from '../../utils/textConversion/numberWith';
+import { songObject } from '../../types';
 
 async function searchForTrack(
   input: string,
@@ -34,9 +35,9 @@ async function searchForTrack(
           .setOptions(
             filteredResult.map((video) => ({
               label: video.title ? video.title.slice(0, 99) : '',
-              description: `⌛: ${video.durationRaw} | 👀: ${numberWithDots(
-                video.views
-              )} | 🗓️: ${video.uploadedAt}`,
+              description: `⌛: ${video.durationRaw} | 👀: ${
+                (numberWith(video.views), '.')
+              } | 🗓️: ${video.uploadedAt}`,
               value: video.id ? video.id.slice(0, 99) : '',
             }))
           )

@@ -8,7 +8,7 @@ import { AddressInfo } from 'net';
     planning to use it, you can safely delete it.
 */
 
-export async function heartbeatInitializing() {
+export default async function HeartbeatInitializing() {
   const fastify = Fastify({
     logger: false,
   });

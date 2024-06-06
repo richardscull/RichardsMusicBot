@@ -7,16 +7,16 @@ import {
 import {
   getSpotifyTrackInfoShort,
   getTrackShortInfo,
-} from '../commands/music/helpers/tracks.helper';
+} from '../../commands/music/helpers/tracks.helper';
 
-import { client } from '../client';
-import { songObject } from './types';
-import { paginateOptions } from './paginationTools';
-import { convertToQueueEmbed } from '../commands/music/helpers/embeds.helper';
+import { client } from '../../client';
+import { songObject } from '../../types';
+import { convertToQueueEmbed } from '../../commands/music/helpers/embeds.helper';
+import PaginateOptions from './paginationTools';
 
 const buttonsRow = new ActionRowBuilder<ButtonBuilder>();
 
-export async function createListEmbed(
+export default async function CreateListEmbed(
   interaction: ChatInputCommandInteraction,
   options: songObject[]
 ) {
@@ -62,7 +62,7 @@ export async function createListEmbed(
     });
 
   async function getUpdatedEmbed() {
-    const finalResult = (await paginateOptions(
+    const finalResult = (await PaginateOptions(
       pageNum,
       buttonsRow,
       options

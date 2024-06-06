@@ -9,13 +9,10 @@ import {
 import { getAverageColor } from 'fast-average-color-node';
 import play from 'play-dl';
 import { client } from '../../../client';
-import {
-  guildObject,
-  millisecondsToString,
-  numberWithSpaces,
-  trackShortInfo,
-} from '../../../utils';
 import { AudioPlayerPlayingState } from '@discordjs/voice';
+import { guildObject, trackShortInfo } from '../../../types';
+import numberWith from '../../../utils/textConversion/numberWith';
+import { MillisecondsToString } from '../../../utils/textConversion/secondsTo';
 
 interface defaultEmbedOptions {
   description: string;
@@ -65,12 +62,12 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
       },
       {
         name: bold(`👀 Просмотров`),
-        value: numberWithSpaces(views),
+        value: numberWith(views, ' '),
         inline: true,
       },
       {
         name: bold(`👍 Лайков`),
-        value: numberWithSpaces(likes),
+        value: numberWith(likes, ' '),
         inline: true,
       }
     )
@@ -99,7 +96,7 @@ export async function convertToQueueEmbed(data: trackShortInfo[]) {
         .map((item) => {
           return `**${item.index ? item.index + '.' : '▶'}** [${item.title}](${
             item.url
-          }) ⏳ ${millisecondsToString(item.duration)} `;
+          }) ⏳ ${MillisecondsToString(item.duration)} `;
         })
         .join('\n')
         .slice(0, 2048)
@@ -149,7 +146,7 @@ export async function createMusicEmbed(guildPlayer: guildObject) {
       .setDescription(
         `${status.isPaused ? '⏸️ | ' : ''}${
           status.onRepeat ? '🔁 | ' : ''
-        }🎧 ${millisecondsToString(
+        }🎧 ${MillisecondsToString(
           playbackDuration
         )} ${progressBar} ${durationRaw}`
       )

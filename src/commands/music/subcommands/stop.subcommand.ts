@@ -3,8 +3,8 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { PlayerProps } from '../../../utils';
 import { errorCodes } from '../helpers/tracks.helper';
+import { PlayerProps } from '../../../types';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand

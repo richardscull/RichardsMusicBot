@@ -3,9 +3,9 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { pluralize } from '../../../utils/pluralize';
 import { sendThreadEmbed } from '../helpers/embeds.helper';
 import { stopAudioPlayer } from './stop.subcommand';
+import Pluralize from '../../../utils/textConversion/pluralize';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -45,7 +45,7 @@ export async function execute(
 
   const getEmbed = client.GetSuccessEmbed(
     timesToSkip
-      ? `✅ ${timesToSkip} ${pluralize(timesToSkip, '', {
+      ? `✅ ${timesToSkip} ${Pluralize(timesToSkip, '', {
           oneObject: 'трек был пропущен',
           someObjects: 'трека было пропущено',
           manyObjects: 'треков было пропущено',
@@ -57,7 +57,7 @@ export async function execute(
     await sendThreadEmbed(interaction, embed.playerThread, {
       description: `⏭ Пользователь ${
         timesToSkip
-          ? `пропустил **${timesToSkip}** ${pluralize(timesToSkip, 'трек', {
+          ? `пропустил **${timesToSkip}** ${Pluralize(timesToSkip, 'трек', {
               oneObject: '',
               someObjects: 'а',
               manyObjects: 'ов',
