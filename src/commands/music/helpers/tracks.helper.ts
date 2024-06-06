@@ -1,20 +1,21 @@
 import { createAudioResource } from '@discordjs/voice';
 import { ChatInputCommandInteraction, User, VoiceChannel } from 'discord.js';
-import {
-  PlayerProps,
-  guildObject,
-  songObject,
-  trackShortInfo,
-} from '../../utils';
+
 import {
   getSpotifyPlaylist,
   getSpotifyTrack,
   getYouTubePlaylist,
   getYouTubeTrack,
   searchForTrack,
-} from './play-handleTracks';
+} from '../HandleTracks';
 import play, { SpotifyTrack } from 'play-dl';
-import { stopAudioPlayer } from './stop-subcommand';
+import { stopAudioPlayer } from '../subcommands/stop.subcommand';
+import {
+  PlayerProps,
+  guildObject,
+  songObject,
+  trackShortInfo,
+} from '../../../types';
 
 /*     ERROR CODES       */
 
@@ -78,6 +79,10 @@ export async function getPlaylistTitle(url: string) {
 
 export async function getVideoTitle(url: string) {
   return (await play.video_info(url)).video_details.title;
+}
+
+export async function getTrackInfo(trackUrl: string) {
+  return (await play.video_info(trackUrl)).video_details;
 }
 
 export async function getTrackShortInfo(trackUrl: string) {

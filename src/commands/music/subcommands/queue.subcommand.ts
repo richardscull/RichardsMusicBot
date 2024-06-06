@@ -3,9 +3,8 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 
-import { ExtendedClient } from '../../client/ExtendedClient';
-
-import { createListEmbed } from '../../utils/embedListPagination';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import CreateListEmbed from '../../../utils/embeds/embedListPagination';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -17,16 +16,18 @@ export async function execute(
   interaction: ChatInputCommandInteraction<'cached'>,
   client: ExtendedClient
 ) {
-  const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+  const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
   if (!guildPlayer) return;
 
   const { queue } = guildPlayer;
 
   await interaction.editReply({
     embeds: [
-      client.successEmbed('⌛ Пожалуйста, подождите, идет загрузка трека...'),
+      client.GetSuccessEmbed(
+        '⌛ Пожалуйста, подождите, идет загрузка списка треков...'
+      ),
     ],
   });
 
-  return await createListEmbed(interaction, queue);
+  return await CreateListEmbed(interaction, queue);
 }

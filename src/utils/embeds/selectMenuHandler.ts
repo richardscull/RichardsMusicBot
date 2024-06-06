@@ -6,13 +6,13 @@ import {
   StringSelectMenuBuilder,
 } from 'discord.js';
 
-import { stringMenuOption } from './types';
-import { paginateOptions } from './paginationTools';
+import { stringMenuOption } from '../../types';
+import PaginateOptions from './paginationTools';
 
 const buttonsRow = new ActionRowBuilder<ButtonBuilder>();
 const actionMenuRow = new ActionRowBuilder<StringSelectMenuBuilder>();
 
-export async function createMenuReply(
+export default async function CreateMenuReply(
   interaction: ChatInputCommandInteraction,
   options: stringMenuOption[],
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -30,6 +30,8 @@ export async function createMenuReply(
     .createMessageComponentCollector()
     .on('collect', async (reply) => {
       if (reply.customId === 'chapterSelect') return;
+
+      await reply.deferUpdate();
 
       if (reply.customId == 'right') {
         pageNum++;
@@ -59,7 +61,7 @@ export async function createMenuReply(
     });
 
   async function updateMenuRow() {
-    const finalResult = (await paginateOptions(
+    const finalResult = (await PaginateOptions(
       pageNum,
       buttonsRow,
       options

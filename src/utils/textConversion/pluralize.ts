@@ -1,4 +1,14 @@
-export function pluralize(number: number, word: string, suffixes: Suffixes) {
+interface Suffixes {
+  oneObject: string;
+  someObjects?: string;
+  manyObjects: string;
+}
+
+export default function Pluralize(
+  number: number,
+  word: string,
+  suffixes: Suffixes
+) {
   if (number <= 0) {
     return word + suffixes.manyObjects;
   } else if (number % 10 === 1 && number % 100 !== 11) {
@@ -14,10 +24,4 @@ export function pluralize(number: number, word: string, suffixes: Suffixes) {
   } else {
     return word + suffixes.manyObjects;
   }
-}
-
-interface Suffixes {
-  oneObject: string;
-  someObjects?: string;
-  manyObjects: string;
 }

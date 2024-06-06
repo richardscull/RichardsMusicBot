@@ -1,8 +1,9 @@
 import { AudioPlayer, VoiceConnection } from '@discordjs/voice';
 import { AnyThreadChannel, EmbedBuilder, Message } from 'discord.js';
-import { ExtendedClient } from '../client/ExtendedClient';
+import { ExtendedClient } from './client/ExtendedClient';
 
 export interface guildObject {
+  startTime: number;
   voiceConnection: VoiceConnection;
   audioPlayer: AudioPlayer;
   queue: Array<songObject>;

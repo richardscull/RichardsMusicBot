@@ -7,16 +7,16 @@ import {
 import {
   getSpotifyTrackInfoShort,
   getTrackShortInfo,
-} from '../commands/music/play-utils';
+} from '../../commands/music/helpers/tracks.helper';
 
-import { client } from '../client';
-import { songObject } from './types';
-import { paginateOptions } from './paginationTools';
-import { convertToQueueEmbed } from '../commands/music/embedsHandler';
+import { client } from '../../client';
+import { songObject, trackShortInfo } from '../../types';
+import PaginateOptions from './paginationTools';
+import { ConvertToQueueEmbed } from '../../commands/music/helpers/embeds.helper';
 
 const buttonsRow = new ActionRowBuilder<ButtonBuilder>();
 
-export async function createListEmbed(
+export default async function CreateListEmbed(
   interaction: ChatInputCommandInteraction,
   options: songObject[]
 ) {
@@ -34,6 +34,8 @@ export async function createListEmbed(
     .on('collect', async (reply) => {
       if (reply.customId === 'chapterSelect') return;
 
+      await reply.deferUpdate();
+
       if (reply.customId == 'right') {
         pageNum++;
       } else if (reply.customId == 'left') {
@@ -44,9 +46,9 @@ export async function createListEmbed(
         pageNum = Math.floor((options.length - 1) / 10);
       }
 
-      await reply.update({
+      await reply.editReply({
         embeds: [
-          client.successEmbed(
+          client.GetSuccessEmbed(
             '⌛ Пожалуйста, подождите, идет загрузка трека...'
           ),
         ],
@@ -62,14 +64,14 @@ export async function createListEmbed(
     });
 
   async function getUpdatedEmbed() {
-    const finalResult = (await paginateOptions(
+    const finalResult = (await PaginateOptions(
       pageNum,
       buttonsRow,
       options
     )) as songObject[];
 
-    const convertedUrlsToTitles = [];
-    for (const element of finalResult) {
+    const convertedUrlsToTitles = [] as trackShortInfo[];
+    const promises = finalResult.map(async (element) => {
       const { type, url } = element.song;
       let result;
 
@@ -79,14 +81,19 @@ export async function createListEmbed(
         result = await getSpotifyTrackInfoShort(url);
       }
 
-      if (result) convertedUrlsToTitles.push(result);
-    }
+      if (result) return result;
+    });
+
+    const resolvedPromises = await Promise.all(promises);
+    resolvedPromises.forEach((element) => {
+      if (element) convertedUrlsToTitles.push(element);
+    });
 
     convertedUrlsToTitles.map((item, index) => {
       item.index = pageNum * 10 + index;
       return item;
     });
 
-    return convertToQueueEmbed(convertedUrlsToTitles);
+    return ConvertToQueueEmbed(convertedUrlsToTitles);
   }
 }
