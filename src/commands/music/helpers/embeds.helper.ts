@@ -165,6 +165,7 @@ async function createProgressBar(value: number, maxValue: number) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getValidImage(images: any) {
   for (let i = images.length - 1; i >= 0; i--) {
     const isAvaliable = await CheckIfAvaliable(images[i].url);

@@ -18,7 +18,7 @@ module.exports = {
         `🐬 ${interaction.user.tag} used /${commandName} ${subcommand ? subcommand + ' ' : ''}`
       );
       await commands[commandName].execute(interaction, client);
-    } catch (err: any) {
+    } catch (err: unknown) {
       error(
         `\n❌ An error has occurred while executing /${
           interaction.commandName

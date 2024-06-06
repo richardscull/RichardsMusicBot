@@ -70,7 +70,7 @@ export class Config {
   }
 
   private checkGithubBranchUrl() {
-    let { GITHUB_BRANCH_URL } = process.env;
+    const { GITHUB_BRANCH_URL } = process.env;
 
     const defaultGithubBranch =
       'repos/richardscull/RichardsMusicBot/commits/master';

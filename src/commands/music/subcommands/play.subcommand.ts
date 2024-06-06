@@ -17,7 +17,6 @@ import {
 import { ExtendedClient } from '../../../client/ExtendedClient';
 import { createGuildPlayer } from '../GuildPlayer';
 
-import log from '../../../utils/logger';
 import { SendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {

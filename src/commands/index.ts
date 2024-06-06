@@ -14,6 +14,7 @@ const readDirectory = (dir: string) => {
       readDirectory(filePath);
     } else if (isCommand && file !== 'index.js' && file !== 'index.ts') {
       const name = file.split('.command')[0];
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const importedModule = require(filePath);
       exports[name] = importedModule;
     }

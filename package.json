@@ -8,8 +8,8 @@
   "description": "Discord bot for playing music from youtube and spotify",
   "devDependencies": {
     "@types/express": "^4.17.21",
-    "@typescript-eslint/eslint-plugin": "^5.47.1",
-    "@typescript-eslint/parser": "^5.47.1",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
     "concurrently": "^8.2.2",
     "copyfiles": "^2.4.1",
     "eslint": "^8.30.0",

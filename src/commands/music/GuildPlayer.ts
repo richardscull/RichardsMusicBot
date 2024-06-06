@@ -132,7 +132,7 @@ async function setAudioPlayerBehavior(
           embeds: [embed.playerEmbed],
         })
         .catch(() => error(`Ошибка при отправке сообщения в канал`))
-        .then((message) => message as any);
+        .then((message) => message as never);
     }
 
     if (!embed.playerMessage) return;

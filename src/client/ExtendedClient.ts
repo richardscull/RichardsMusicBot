@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */ // Fix later if can
 import { Client, EmbedBuilder } from 'discord.js';
 import Jsoning from 'jsoning';
 import config from '../config';
@@ -65,6 +67,7 @@ export class ExtendedClient extends Client {
       if (err) throw new Error("Couldn't find the events dir!");
       else {
         files.forEach((file) => {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
           const event = require(eventsDir + '/' + file);
           if (event.once) {
             this.once(event.name, (...args) => event.execute(...args));
