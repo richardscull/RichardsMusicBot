@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import { guildObject } from '../types';
 import HeartbeatInitializing from '../utils/heartbeat';
 import { InitiliazeHeartbeat } from '..';
+import { error } from '../utils/logger';
 
 export class ExtendedClient extends Client {
   public MusicPlayer = new Map<string, guildObject>();
@@ -40,7 +41,7 @@ export class ExtendedClient extends Client {
     this.loadEvents();
     this.loginToSpotify();
     return await this.login(config.DISCORD_TOKEN).catch((err) => {
-      console.error(`[Discord Login Error]`, err);
+      error(`[Discord Login Error]`, err);
       process.exit(1);
     });
   }

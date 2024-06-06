@@ -1,5 +1,5 @@
-import chalk from 'chalk';
 import dotenv from 'dotenv';
+import { styleText } from 'util';
 dotenv.config();
 
 // TODO: Check later
@@ -51,7 +51,9 @@ export class Config {
 
     if (isEveryVariablePresent) return;
 
-    throw new Error(chalk.yellowBright('⚠️   Missing arguments in .env file!'));
+    throw new Error(
+      styleText(['yellowBright'], 'Missing arguments in .env file! ⚠️')
+    );
   }
 
   private checkSpotifyVariables() {
@@ -63,7 +65,7 @@ export class Config {
     if (isEveryVariablePresent) return;
 
     throw new Error(
-      chalk.yellowBright('⚠️   Missing spotify related arguments in .env file!')
+      styleText(['yellowBright'], 'Missing arguments in .env file! ⚠️')
     );
   }
 

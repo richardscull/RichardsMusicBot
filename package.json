@@ -25,8 +25,8 @@
     "@discordjs/rest": "^2.3.0",
     "@discordjs/voice": "^0.17.0",
     "@types/dotenv": "^8.2.0",
+    "@types/node": "^20.14.2",
     "axios": "^1.7.2",
-    "chalk": "^4.1.2",
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
@@ -45,7 +45,7 @@
     "start": "node build/index.js ",
     "dev": "concurrently \"tsc -w\" \"nodemon build/index.js --ignore *.json\"",
     "clear": "rimraf build/",
-    "deploy-commands": "tsc && node build/client/deploy-commands.js",
+    "deploy-commands": "tsc && node build/client/DeployCommands.js",
     "lint": "eslint . --ext .ts"
   }
 }

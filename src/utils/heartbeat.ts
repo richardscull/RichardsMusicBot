@@ -1,6 +1,6 @@
-import chalk from 'chalk';
 import Fastify from 'fastify';
 import { AddressInfo } from 'net';
+import log from './logger';
 
 /* 
     Note: Heartbeat is a feature to check
@@ -23,6 +23,6 @@ export default async function HeartbeatInitializing() {
 
     const { port } = fastify.server.address() as AddressInfo;
 
-    console.log(chalk.green(`✅ Hearbeat listening on port ${port} 🚀`));
+    log(`✅ Hearbeat listening on port ${port} 🚀`);
   });
 }

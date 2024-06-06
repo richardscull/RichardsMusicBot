@@ -13,6 +13,7 @@ import { AudioPlayerPlayingState } from '@discordjs/voice';
 import { guildObject, trackShortInfo } from '../../../types';
 import numberWith from '../../../utils/textConversion/numberWith';
 import { MillisecondsToString } from '../../../utils/textConversion/secondsTo';
+import { error } from '../../../utils/logger';
 
 interface defaultEmbedOptions {
   description: string;
@@ -80,7 +81,7 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
   } catch (e) {
     // In commit #30 I removed thumbnails.length - 1, because it was causing error.
     // Don't remember why error could occured, so I will try to get more info about it.
-    console.log('⚠️ Thumbnail error: ', e);
+    error('⚠️ Thumbnail error: ', e);
   }
 
   if (embed.playerThread) embed.playerThread.send({ embeds: [createEmbed] });
@@ -163,7 +164,7 @@ export async function createMusicEmbed(guildPlayer: guildObject) {
   } catch (e) {
     // In commit #30 I removed thumbnails.length - 1, because it was causing error.
     // Don't remember why error could occured, so I will try to get more info about it.
-    console.log('⚠️ Thumbnail error on player: ', e);
+    error('⚠️ Thumbnail error on player: ', e);
   }
 }
 

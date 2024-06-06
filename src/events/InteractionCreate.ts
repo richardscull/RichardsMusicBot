@@ -14,7 +14,7 @@ module.exports = {
     try {
       await commands[commandName].execute(interaction, client);
     } catch (error: any) {
-      console.error(
+      error(
         `\n❌ An error has occurred while executing /${
           interaction.commandName
         } ${subcommand ? subcommand + ' ' : ''}|`,
