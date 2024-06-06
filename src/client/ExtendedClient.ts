@@ -24,8 +24,8 @@ export class ExtendedClient extends Client {
     return Promise.resolve();
   };
 
-  public constructor(intents: any) {
-    super({ intents });
+  public constructor(options: any) {
+    super(options);
 
     const embedHandler = new Embeds();
     this.GetSuccessEmbed = embedHandler.GetSuccessEmbed;
