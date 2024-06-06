@@ -24,6 +24,7 @@
     "@discordjs/builders": "^1.8.2",
     "@discordjs/rest": "^2.3.0",
     "@discordjs/voice": "^0.17.0",
+    "@swc/core": "^1.5.25",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^20.14.2",
     "axios": "^1.7.2",
@@ -37,15 +38,16 @@
     "libsodium-wrappers": "^0.7.13",
     "os": "^0.1.2",
     "path": "^0.12.7",
-    "play-dl": "^1.9.7"
+    "play-dl": "^1.9.7",
+    "ts-node": "^10.9.2"
   },
   "scripts": {
-    "build": "npx tsc",
-    "build:start": "npm run deploy-commands",
-    "start": "node build/index.js ",
-    "dev": "concurrently \"tsc -w\" \"nodemon build/index.js --ignore *.json\"",
+    "build": "npm run clear && npx tsc",
+    "start": "node build/index.js",
+    "dev": "npx ts-node src/index.ts",
+    "deploy-commands:prod": "npm run deploy-commands && npm run start",
     "clear": "rimraf build/",
-    "deploy-commands": "tsc && node build/client/DeployCommands.js",
+    "build:deploy-commands": "build && node build/client/DeployCommands.js",
     "lint": "eslint . --ext .ts"
   }
 }

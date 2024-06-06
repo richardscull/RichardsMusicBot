@@ -6,8 +6,10 @@ import path from 'path';
 import * as fs from 'fs';
 import { guildObject } from '../types';
 import HeartbeatInitializing from '../utils/heartbeat';
-import { InitiliazeHeartbeat } from '..';
 import { error } from '../utils/logger';
+
+// Should the bot initialize the heartbeat at startup?
+export const InitiliazeHeartbeat = false as boolean;
 
 export class ExtendedClient extends Client {
   public MusicPlayer = new Map<string, guildObject>();
