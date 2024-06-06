@@ -195,11 +195,10 @@ async function setAudioPlayerBehavior(
       guildPlayer,
     });
 
-    if (isSafeToEdit === false) return clearInterval(guildPlayer.interval);
-
-    const { playerMessage, playerThread, playerEmbed } = guildPlayer.embed;
+    if (isSafeToEdit === false) return;
 
     const { embed } = guildPlayer;
+    const { playerMessage, playerThread, playerEmbed } = embed;
 
     if (!playerEmbed || !playerMessage || !playerThread) return;
 

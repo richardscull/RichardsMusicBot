@@ -62,7 +62,12 @@ export async function execute(
     : await createGuildPlayer(interaction, client);
 
   if (!guildPlayer)
-    return client.GetErrorEmbed('❌ Не удалось создать плеер в гильдии!');
+    return client.SendEmbed(
+      interaction,
+      client.GetErrorEmbed(
+        `❌ Произошла ошибка при создании плеера для вашего сервера!`
+      )
+    );
 
   const hasEmptyQueue = guildPlayer.queue.length == 0;
 
@@ -80,7 +85,12 @@ export async function execute(
 
   // Should be created with guildPlayer object
   if (!guildPlayer.voiceConnection.joinConfig.channelId)
-    return client.GetErrorEmbed('❌ Не удалось найти голосовой канал!');
+    return client.SendEmbed(
+      interaction,
+      client.GetErrorEmbed(
+        `❌ Произошла ошибка при получении голосового канала!`
+      )
+    );
 
   const voiceChannel = client.channels.cache.get(
     guildPlayer.voiceConnection.joinConfig.channelId

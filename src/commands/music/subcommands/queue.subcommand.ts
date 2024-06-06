@@ -6,7 +6,6 @@ import {
 import { ExtendedClient } from '../../../client/ExtendedClient';
 import CreateListEmbed from '../../../utils/embeds/embedListPagination';
 
-
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
     .setName('queue')
