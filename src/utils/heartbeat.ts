@@ -13,7 +13,7 @@ export default async function HeartbeatInitializing() {
     logger: false,
   });
 
-  fastify.get('/', async (request, reply) => {
+  fastify.get('/', async (_, reply) => {
     return reply.send({ status: 'ok' });
   });
 

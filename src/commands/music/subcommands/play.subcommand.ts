@@ -17,6 +17,7 @@ import {
 import { ExtendedClient } from '../../../client/ExtendedClient';
 import { createGuildPlayer } from '../GuildPlayer';
 import { sendThreadEmbed } from '../helpers/embeds.helper';
+import log from '../../../utils/logger';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -44,6 +45,8 @@ export async function execute(
   const userInputData = await validateInput(userInput, interaction);
   const isSongsArray = Array.isArray(userInputData);
 
+  log(`${interaction.user.username} used /music play`, userInputData);
+
   if (typeof userInputData === 'string') {
     return await interaction.editReply({
       embeds: [client.GetErrorEmbed(userInputData)],
@@ -58,7 +61,8 @@ export async function execute(
     ? await client.GetGuildPlayer(interaction.guildId)
     : await createGuildPlayer(interaction, client);
 
-  if (!guildPlayer) return;
+  if (!guildPlayer)
+    return client.GetErrorEmbed('❌ Не удалось создать плеер в гильдии!');
 
   const hasEmptyQueue = guildPlayer.queue.length == 0;
 
@@ -74,7 +78,9 @@ export async function execute(
     }
   }
 
-  if (!guildPlayer.voiceConnection.joinConfig.channelId) return;
+  // Should be created with guildPlayer object
+  if (!guildPlayer.voiceConnection.joinConfig.channelId)
+    return client.GetErrorEmbed('❌ Не удалось найти голосовой канал!');
 
   const voiceChannel = client.channels.cache.get(
     guildPlayer.voiceConnection.joinConfig.channelId
@@ -118,7 +124,6 @@ export async function execute(
     );
 
     guildPlayer.audioPlayer.play(audioResource);
-
     return;
   }
 
