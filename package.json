@@ -47,7 +47,7 @@
     "dev": "npx ts-node src/index.ts",
     "deploy-commands:prod": "npm run deploy-commands && npm run start",
     "clear": "rimraf build/",
-    "build:deploy-commands": "build && node build/client/DeployCommands.js",
+    "build:deploy-commands": "npm run build && node build/client/DeployCommands.js",
     "lint": "eslint . --ext .ts"
   }
 }
