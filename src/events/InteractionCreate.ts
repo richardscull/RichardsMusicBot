@@ -1,6 +1,8 @@
 import { Events, ChatInputCommandInteraction } from 'discord.js';
 import { client } from '../client/index';
 import * as commandModules from '../commands';
+import log, { error } from '../utils/logger';
+
 const commands = Object(commandModules);
 
 module.exports = {
@@ -9,37 +11,37 @@ module.exports = {
     if (!interaction.isChatInputCommand()) return;
 
     const { commandName } = interaction;
+    const subcommand = interaction.options.getSubcommand(false);
+
     try {
+      log(
+        `🐬 ${interaction.user.tag} used /${commandName} ${subcommand ? subcommand + ' ' : ''}`
+      );
       await commands[commandName].execute(interaction, client);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const getSubcommand = interaction.options.getSubcommand(false);
-      console.error(
+    } catch (err: unknown) {
+      error(
         `\n❌ An error has occurred while executing /${
           interaction.commandName
-        } ${getSubcommand ? getSubcommand + ' ' : ''}|`,
-        error
+        } ${subcommand ? subcommand + ' ' : ''}|`,
+        err
       );
-      if (error.code === 10062)
-        return console.log(
-          "\n💭 Look's like server-side took too long to handle initial response.\nIf you see this error very often, try to deferReply all Interactions.\n"
-        );
 
+      const errorMsg =
+        '> **Что-то пошло не так... **\n> ⚠️ Похоже возникла ошибка при исполнении этой команды!';
       if (interaction.replied) {
         return await interaction.followUp({
-          content:
-            '> **Что-то пошло не так... **\n> ⚠️ Похоже возникла ошибка при исполнении этой команды!',
+          content: errorMsg,
           ephemeral: true,
         });
       } else if (interaction.deferred) {
         return await interaction.editReply({
-          content:
-            '> **Что-то пошло не так... **\n> ⚠️ Похоже возникла ошибка при исполнении этой команды!',
+          content: errorMsg,
+          embeds: [],
+          components: [],
         });
       } else {
         return await interaction.reply({
-          content:
-            '> **Что-то пошло не так... **\n> ⚠️ Похоже возникла ошибка при исполнении этой команды!',
+          content: errorMsg,
           ephemeral: true,
         });
       }

@@ -1,6 +1,5 @@
-import { errorCodes, isForcedInput } from './play-utils';
+import { errorCodes, isForcedInput } from './helpers/tracks.helper';
 import play, { SpotifyPlaylist, SpotifyTrack, YouTubeVideo } from 'play-dl';
-import { numberWithDots, songObject } from '../../utils';
 import { client } from '../../client';
 import {
   ActionRowBuilder,
@@ -8,6 +7,8 @@ import {
   ComponentType,
   StringSelectMenuBuilder,
 } from 'discord.js';
+import numberWith from '../../utils/textConversion/numberWith';
+import { songObject } from '../../types';
 
 async function searchForTrack(
   input: string,
@@ -34,9 +35,9 @@ async function searchForTrack(
           .setOptions(
             filteredResult.map((video) => ({
               label: video.title ? video.title.slice(0, 99) : '',
-              description: `⌛: ${video.durationRaw} | 👀: ${numberWithDots(
-                video.views
-              )} | 🗓️: ${video.uploadedAt}`,
+              description: `⌛: ${video.durationRaw} | 👀: ${
+                (numberWith(video.views), '.')
+              } | 🗓️: ${video.uploadedAt}`,
               value: video.id ? video.id.slice(0, 99) : '',
             }))
           )
@@ -53,14 +54,14 @@ async function searchForTrack(
       await interaction.update({
         components: [],
         embeds: [
-          client.successEmbed(
+          client.GetSuccessEmbed(
             `⌛ Пожалуйста, подождите, идет загрузка трека...`
           ),
         ],
       });
 
       return {
-        user: `${interaction.user.username}#${interaction.user.discriminator}`,
+        user: `${interaction.user.displayName} (${interaction.user.username})`,
         song: {
           type: 'youtube',
           url: interaction.values[0],
@@ -83,7 +84,7 @@ async function getYouTubeTrack(
     if (videoData.LiveStreamData.isLive) return errorCodes.is_live;
 
     return {
-      user: `${interaction.user.username}#${interaction.user.discriminator}`,
+      user: `${interaction.user.displayName} (${interaction.user.username})`,
       isForced: isForcedInput(interaction),
       song: {
         type: 'youtube',
@@ -116,7 +117,7 @@ async function getSpotifyTrack(
   if (filteredResult.length === 0) filteredResult[0].url = 'dQw4w9WgXcQ';
 
   return {
-    user: `${interaction.user.username}#${interaction.user.discriminator}`,
+    user: `${interaction.user.displayName} (${interaction.user.username})`,
     isForced: isForcedInput(interaction),
     song: {
       type: 'youtube',
@@ -135,7 +136,7 @@ async function getYouTubePlaylist(
 
   return (await playlist.all_videos()).map((video) => {
     return {
-      user: `${interaction.user.username}#${interaction.user.discriminator}`,
+      user: `${interaction.user.displayName} (${interaction.user.username})`,
       isForced: false,
       song: {
         type: 'youtube',
@@ -155,7 +156,7 @@ async function getSpotifyPlaylist(
 
   return (await playlist.all_tracks()).map((track: SpotifyTrack) => {
     return {
-      user: `${interaction.user.username}#${interaction.user.discriminator}`,
+      user: `${interaction.user.displayName} (${interaction.user.username})`,
       isForced: false,
       song: {
         type: 'spotify',

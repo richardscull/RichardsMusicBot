@@ -14,8 +14,7 @@ If you want to try the bot before self-hosting him, you can add already hosted v
 
 To set up the self-hosted version of the bot, the following are required:
 
-1. Node.js v16.9.0 or higher
-2. Discord.js v14
+1. Node.js v21 or higher
 
 # ⚙️ Setup
 

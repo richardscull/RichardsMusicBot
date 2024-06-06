@@ -17,7 +17,7 @@ const buttonSuperRight = new ButtonBuilder()
   .setLabel('⏭️')
   .setStyle(ButtonStyle.Primary);
 
-export async function paginateOptions(
+export default async function PaginateOptions(
   pageIndex: number,
   buttonsRow: ActionRowBuilder<ButtonBuilder>,
   options: unknown[]

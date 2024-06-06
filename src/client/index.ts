@@ -1,6 +1,7 @@
 import { GatewayIntentBits, Partials } from 'discord.js';
 import { ExtendedClient } from './ExtendedClient';
-import { heartbeatInitializing } from '../utils/heartbeat';
+import HandleShutdown from './HandleShutdown';
+
 export const client = new ExtendedClient({
   intents: [
     GatewayIntentBits.Guilds,
@@ -14,9 +15,16 @@ export const client = new ExtendedClient({
 });
 
 async function serverInitializing() {
-  await client.discordLogin();
-  await heartbeatInitializing();
-  await client.registerCustomEmojis();
+  await client.DiscordLogin();
+  await client.RegisterCustomEmojis();
+
+  process.on('SIGINT', HandleShutdown.bind(null, client));
+  process.on('SIGTERM', HandleShutdown.bind(null, client));
+  process.on('uncaughtException', (e) => {
+    HandleShutdown.bind(null, client, true);
+    console.log(e);
+  });
+  process.on('unhandledRejection', HandleShutdown.bind(null, client, true));
 }
 
 serverInitializing();

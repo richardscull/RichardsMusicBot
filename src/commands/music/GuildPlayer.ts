@@ -2,7 +2,6 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
-  entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
   VoiceConnectionStatus,
@@ -15,15 +14,19 @@ import {
 } from 'discord.js';
 
 import { ExtendedClient } from '../../client/ExtendedClient';
-import { guildObject } from '../../utils';
 
-import { createMusicEmbed, sendSongEmbedToThread } from './embedsHandler';
 import {
   ensureValidVoiceConnection,
   errorCodes,
   firstObjectToAudioResource,
-} from './play-utils';
-import { stopAudioPlayer } from './stop-subcommand';
+} from './helpers/tracks.helper';
+import { stopAudioPlayer } from './subcommands/stop.subcommand';
+import { guildObject } from '../../types';
+import {
+  CreateMusicEmbed,
+  SendSongEmbedToThread,
+} from './helpers/embeds.helper';
+import { error } from '../../utils/logger';
 
 export async function createGuildPlayer(
   interaction: ChatInputCommandInteraction<'cached'>,
@@ -40,7 +43,7 @@ export async function createGuildPlayer(
     interaction.channel instanceof StageChannel
   ) {
     interaction.editReply({
-      embeds: [client.errorEmbed(errorCodes.no_permission)],
+      embeds: [client.GetErrorEmbed(errorCodes.no_permission)],
     });
     return;
   }
@@ -51,21 +54,23 @@ export async function createGuildPlayer(
     adapterCreator: guild.voiceAdapterCreator,
   });
 
+  // NOTE: I badly remember why I added this, but I commented code caused
+  // the bot to stop playing music and just stuck in the voice channel.
   voiceConnection.on(VoiceConnectionStatus.Disconnected, async () => {
-    try {
-      await Promise.race([
-        entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
-        entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
-      ]);
-    } catch (error) {
-      const guildPlayer = await client.getGuildPlayer(interaction.guildId);
-      if (!guildPlayer) return voiceConnection.destroy();
+    // try {
+    //   await Promise.race([
+    //     entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
+    //     entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
+    //   ]);
+    // } catch (error) {
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
+    if (!guildPlayer) return voiceConnection.destroy();
 
-      stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
-        client,
-        guildPlayer,
-      });
-    }
+    stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
+      client,
+      guildPlayer,
+    });
+    // }
   });
 
   const audioPlayer = createAudioPlayer({
@@ -79,6 +84,7 @@ export async function createGuildPlayer(
   voiceConnection.subscribe(audioPlayer);
 
   const guildPlayerProps = {
+    startTime: Date.now(),
     voiceConnection: voiceConnection,
     audioPlayer: audioPlayer,
     guildId: guildId,
@@ -90,7 +96,7 @@ export async function createGuildPlayer(
     },
   };
 
-  client.musicPlayer.set(guildId, guildPlayerProps);
+  client.MusicPlayer.set(guildId, guildPlayerProps);
   return guildPlayerProps as guildObject;
 }
 
@@ -100,17 +106,20 @@ async function setAudioPlayerBehavior(
   client: ExtendedClient
 ) {
   audioPlayer.on(AudioPlayerStatus.Paused, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
     if (guildPlayer) guildPlayer.status.isPaused = true;
   });
 
   audioPlayer.on(AudioPlayerStatus.Playing, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
-
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
     if (!guildPlayer) return;
+
+    const isPaused = guildPlayer.status.isPaused === true;
+    if (isPaused) return (guildPlayer.status.isPaused = false);
+
     const { embed } = guildPlayer;
 
-    embed.playerEmbed = await createMusicEmbed(guildPlayer);
+    embed.playerEmbed = await CreateMusicEmbed(guildPlayer);
     if (!embed.playerEmbed) return;
 
     if (embed.playerMessage) {
@@ -118,10 +127,15 @@ async function setAudioPlayerBehavior(
     } else {
       if (!interaction.channel) return;
 
-      embed.playerMessage = await interaction.channel.send({
-        embeds: [embed.playerEmbed],
-      });
+      embed.playerMessage = await interaction.channel
+        .send({
+          embeds: [embed.playerEmbed],
+        })
+        .catch(() => error(`Ошибка при отправке сообщения в канал`))
+        .then((message) => message as never);
     }
+
+    if (!embed.playerMessage) return;
 
     if (!embed.playerThread) {
       embed.playerThread = await embed.playerMessage.startThread({
@@ -129,7 +143,7 @@ async function setAudioPlayerBehavior(
       });
     }
 
-    await sendSongEmbedToThread(guildPlayer);
+    await SendSongEmbedToThread(guildPlayer);
 
     if (guildPlayer.interval) clearInterval(guildPlayer.interval);
     guildPlayer.interval = setInterval(
@@ -139,7 +153,7 @@ async function setAudioPlayerBehavior(
   });
 
   audioPlayer.on(AudioPlayerStatus.Idle, async () => {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
     if (!guildPlayer || !guildPlayer.voiceConnection.joinConfig.channelId)
       return;
 
@@ -152,7 +166,9 @@ async function setAudioPlayerBehavior(
     /*  NOTE: The second condition ensures that if the next song has a seek value,
      indicating that the user has changed the chapter of the current song,
     we shift to a current song that has an updated seek position.  */
-    if (!status.onRepeat || (queue[1] && queue[1].song.seek)) queue.shift();
+    if (!status.onRepeat || (queue[1] && queue[1].song.seek)) {
+      queue.shift();
+    }
 
     const voiceChannel = client.channels.cache.get(
       guildPlayer.voiceConnection.joinConfig.channelId
@@ -178,7 +194,7 @@ async function setAudioPlayerBehavior(
   });
 
   async function onIntervalUpdate() {
-    const guildPlayer = await client.getGuildPlayer(interaction.guildId);
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
 
     if (!guildPlayer || !guildPlayer.voiceConnection.joinConfig.channelId)
       return;
@@ -192,15 +208,14 @@ async function setAudioPlayerBehavior(
       guildPlayer,
     });
 
-    if (isSafeToEdit === false) return clearInterval(guildPlayer.interval);
-
-    const { playerMessage, playerThread, playerEmbed } = guildPlayer.embed;
+    if (isSafeToEdit === false) return;
 
     const { embed } = guildPlayer;
+    const { playerMessage, playerThread, playerEmbed } = embed;
 
     if (!playerEmbed || !playerMessage || !playerThread) return;
 
-    embed.playerEmbed = await createMusicEmbed(guildPlayer);
+    embed.playerEmbed = await CreateMusicEmbed(guildPlayer);
 
     if (embed.playerMessage && embed.playerEmbed)
       embed.playerMessage.edit({ embeds: [embed.playerEmbed] }).catch(() => {});

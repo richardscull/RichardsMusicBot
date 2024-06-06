@@ -8,15 +8,16 @@ import {
   pushSong,
   spliceSong,
   validateInput,
-} from './play-utils';
+} from '../helpers/tracks.helper';
 import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
   VoiceChannel,
 } from 'discord.js';
-import { ExtendedClient } from '../../client/ExtendedClient';
-import { createGuildPlayer } from './play-guildPlayer';
-import { sendThreadEmbed } from './embedsHandler';
+import { ExtendedClient } from '../../../client/ExtendedClient';
+import { createGuildPlayer } from '../GuildPlayer';
+
+import { SendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -44,21 +45,28 @@ export async function execute(
   const userInputData = await validateInput(userInput, interaction);
   const isSongsArray = Array.isArray(userInputData);
 
+  // If userInputData is a string, it means it returns an error
   if (typeof userInputData === 'string') {
     return await interaction.editReply({
-      embeds: [client.errorEmbed(userInputData)],
+      embeds: [client.GetErrorEmbed(userInputData)],
     });
   } else if (typeof userInputData === 'undefined') {
     return await interaction.editReply({
-      embeds: [client.errorEmbed(errorCodes.no_result)],
+      embeds: [client.GetErrorEmbed(errorCodes.no_result)],
     });
   }
 
-  const guildPlayer = (await client.getGuildPlayer(interaction.guildId))
-    ? await client.getGuildPlayer(interaction.guildId)
+  const guildPlayer = (await client.GetGuildPlayer(interaction.guildId))
+    ? await client.GetGuildPlayer(interaction.guildId)
     : await createGuildPlayer(interaction, client);
 
-  if (!guildPlayer) return;
+  if (!guildPlayer)
+    return client.SendEmbed(
+      interaction,
+      client.GetErrorEmbed(
+        `❌ Произошла ошибка при создании плеера для вашего сервера!`
+      )
+    );
 
   const hasEmptyQueue = guildPlayer.queue.length == 0;
 
@@ -74,7 +82,14 @@ export async function execute(
     }
   }
 
-  if (!guildPlayer.voiceConnection.joinConfig.channelId) return;
+  // Should be created with guildPlayer object
+  if (!guildPlayer.voiceConnection.joinConfig.channelId)
+    return client.SendEmbed(
+      interaction,
+      client.GetErrorEmbed(
+        `❌ Произошла ошибка при получении голосового канала!`
+      )
+    );
 
   const voiceChannel = client.channels.cache.get(
     guildPlayer.voiceConnection.joinConfig.channelId
@@ -88,7 +103,7 @@ export async function execute(
     : ` в очередь!`;
 
   if (guildPlayer.embed.playerThread)
-    sendThreadEmbed(interaction, guildPlayer.embed.playerThread, {
+    SendThreadEmbed(interaction, guildPlayer.embed.playerThread, {
       description: isSongsArray
         ? `📋 Пользователь добавил плейлист **${await getPlaylistTitle(
             userInput
@@ -98,19 +113,18 @@ export async function execute(
           )}**` + isUsingForce,
     }).catch(() => {});
 
-  await interaction.editReply({
-    embeds: [
-      client.successEmbed(
-        isSongsArray
-          ? `🌿 Плейлист **${await getPlaylistTitle(
-              userInput
-            )}** был успешно добавлен` + isUsingForce
-          : `🌿 Песня **${await getVideoTitle(
-              userInputData.song.url
-            )}** была успешно добавлена` + isUsingForce
-      ),
-    ],
-  });
+  await client.SendEmbed(
+    interaction,
+    client.GetSuccessEmbed(
+      isSongsArray
+        ? `🌿 Плейлист **${await getPlaylistTitle(
+            userInput
+          )}** был успешно добавлен` + isUsingForce
+        : `🌿 Песня **${await getVideoTitle(
+            userInputData.song.url
+          )}** была успешно добавлена` + isUsingForce
+    )
+  );
 
   if (guildPlayer.queue.length <= 1 || hasEmptyQueue) {
     const audioResource = await firstObjectToAudioResource(
@@ -119,7 +133,6 @@ export async function execute(
     );
 
     guildPlayer.audioPlayer.play(audioResource);
-
     return;
   }
 
