@@ -25,4 +25,5 @@ rest
   .then(() => {
     log('📩 Successfully registered application commands.');
   })
-  .catch(console.error);
+  .catch(console.error)
+  .finally(() => process.exit(0));
