@@ -11,8 +11,8 @@ import {
 
 import { client } from '../../client';
 import { songObject } from '../../types';
-import { convertToQueueEmbed } from '../../commands/music/helpers/embeds.helper';
 import PaginateOptions from './paginationTools';
+import { ConvertToQueueEmbed } from '../../commands/music/helpers/embeds.helper';
 
 const buttonsRow = new ActionRowBuilder<ButtonBuilder>();
 
@@ -87,6 +87,6 @@ export default async function CreateListEmbed(
       return item;
     });
 
-    return convertToQueueEmbed(convertedUrlsToTitles);
+    return ConvertToQueueEmbed(convertedUrlsToTitles);
   }
 }

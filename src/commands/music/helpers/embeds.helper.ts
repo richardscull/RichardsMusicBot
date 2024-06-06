@@ -13,7 +13,6 @@ import { AudioPlayerPlayingState } from '@discordjs/voice';
 import { guildObject, trackShortInfo } from '../../../types';
 import numberWith from '../../../utils/textConversion/numberWith';
 import { MillisecondsToString } from '../../../utils/textConversion/secondsTo';
-import { error } from '../../../utils/logger';
 import { CheckIfAvaliable } from '../../../utils/fetch';
 
 interface defaultEmbedOptions {
