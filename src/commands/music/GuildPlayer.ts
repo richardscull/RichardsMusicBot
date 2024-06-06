@@ -2,7 +2,6 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
-  entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
   VoiceConnectionStatus,
@@ -55,7 +54,8 @@ export async function createGuildPlayer(
     adapterCreator: guild.voiceAdapterCreator,
   });
 
-  // NOTE: I badly remember why I added this, but I think it should be the edge case...
+  // NOTE: I badly remember why I added this, but I commented code caused
+  // the bot to stop playing music and just stuck in the voice channel.
   voiceConnection.on(VoiceConnectionStatus.Disconnected, async () => {
     // try {
     //   await Promise.race([
@@ -84,6 +84,7 @@ export async function createGuildPlayer(
   voiceConnection.subscribe(audioPlayer);
 
   const guildPlayerProps = {
+    startTime: Date.now(),
     voiceConnection: voiceConnection,
     audioPlayer: audioPlayer,
     guildId: guildId,

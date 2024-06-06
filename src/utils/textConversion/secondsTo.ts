@@ -22,3 +22,4 @@ export function MillisecondsToString(ms: number): string {
   }
   return `${hours}${minutes}:${seconds}`;
 }
+
