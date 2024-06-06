@@ -1,5 +1,6 @@
 import { GatewayIntentBits, Partials } from 'discord.js';
 import { ExtendedClient } from './ExtendedClient';
+
 export const client = new ExtendedClient({
   intents: [
     GatewayIntentBits.Guilds,
@@ -14,7 +15,6 @@ export const client = new ExtendedClient({
 
 async function serverInitializing() {
   await client.DiscordLogin();
-  // await heartbeatInitializing();
   await client.RegisterCustomEmojis();
 }
 

@@ -5,6 +5,8 @@ import * as play from 'play-dl';
 import path from 'path';
 import * as fs from 'fs';
 import { guildObject } from '../types';
+import HeartbeatInitializing from '../utils/heartbeat';
+import { InitiliazeHeartbeat } from '..';
 
 export class ExtendedClient extends Client {
   public MusicPlayer = new Map<string, guildObject>();
@@ -31,6 +33,7 @@ export class ExtendedClient extends Client {
     this.GetSuccessEmbed = embedHandler.GetSuccessEmbed;
     this.GetErrorEmbed = embedHandler.GetErrorEmbed;
     this.SendEmbed = embedHandler.SendEmbed;
+    if (InitiliazeHeartbeat) HeartbeatInitializing();
   }
 
   public async DiscordLogin() {
