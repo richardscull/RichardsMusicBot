@@ -16,8 +16,9 @@ import {
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
 import { createGuildPlayer } from '../GuildPlayer';
-import { sendThreadEmbed } from '../helpers/embeds.helper';
+
 import log from '../../../utils/logger';
+import { SendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -104,7 +105,7 @@ export async function execute(
     : ` в очередь!`;
 
   if (guildPlayer.embed.playerThread)
-    sendThreadEmbed(interaction, guildPlayer.embed.playerThread, {
+    SendThreadEmbed(interaction, guildPlayer.embed.playerThread, {
       description: isSongsArray
         ? `📋 Пользователь добавил плейлист **${await getPlaylistTitle(
             userInput

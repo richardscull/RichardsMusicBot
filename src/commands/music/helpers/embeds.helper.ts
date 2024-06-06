@@ -14,13 +14,14 @@ import { guildObject, trackShortInfo } from '../../../types';
 import numberWith from '../../../utils/textConversion/numberWith';
 import { MillisecondsToString } from '../../../utils/textConversion/secondsTo';
 import { error } from '../../../utils/logger';
+import { CheckIfAvaliable } from '../../../utils/fetch';
 
 interface defaultEmbedOptions {
   description: string;
   color?: ColorResolvable;
 }
 
-export function sendThreadEmbed(
+export function SendThreadEmbed(
   interaction: ChatInputCommandInteraction<'cached'>,
   thread: AnyThreadChannel<boolean>,
   options: defaultEmbedOptions
@@ -37,7 +38,7 @@ export function sendThreadEmbed(
   return thread.send({ embeds: [createEmbed] });
 }
 
-export async function sendSongEmbedToThread(guildPlayer: guildObject) {
+export async function SendSongEmbedToThread(guildPlayer: guildObject) {
   const { queue, embed } = guildPlayer;
 
   // Shouldn't be possible, but just in case.
@@ -55,6 +56,7 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
     )
     .setTitle(title as string)
     .setURL(url)
+    .setThumbnail(await getValidThumbnail(thumbnails))
     .setFields(
       {
         name: bold(`👋 Автор`),
@@ -76,20 +78,12 @@ export async function sendSongEmbedToThread(guildPlayer: guildObject) {
     .setTimestamp()
     .setFooter({ text: `📨 Запросил: ${queue[0].user}` });
 
-  try {
-    createEmbed.setThumbnail(thumbnails[2].url);
-  } catch (e) {
-    // In commit #30 I removed thumbnails.length - 1, because it was causing error.
-    // Don't remember why error could occured, so I will try to get more info about it.
-    error('⚠️ Thumbnail error: ', e);
-  }
-
   if (embed.playerThread) embed.playerThread.send({ embeds: [createEmbed] });
 
   return;
 }
 
-export async function convertToQueueEmbed(data: trackShortInfo[]) {
+export async function ConvertToQueueEmbed(data: trackShortInfo[]) {
   const createEmbed = new EmbedBuilder()
     .setTitle('📜 Очередь')
     .setDescription(
@@ -107,68 +101,56 @@ export async function convertToQueueEmbed(data: trackShortInfo[]) {
   return createEmbed;
 }
 
-export async function createMusicEmbed(guildPlayer: guildObject) {
-  try {
-    const { status, queue, audioPlayer } = guildPlayer;
+export async function CreateMusicEmbed(guildPlayer: guildObject) {
+  const { status, queue, audioPlayer } = guildPlayer;
 
-    // Don't should be possible, but just in case.
-    if (queue[0].song.type === 'spotify') return;
+  // Shouldn't be possible, but just in case.
+  if (queue[0].song.type === 'spotify') return;
 
-    const videoData = (await play.video_info(queue[0].song.url)).video_details;
-    const { title, url, thumbnails, channel, durationRaw } = videoData;
+  const videoData = (await play.video_info(queue[0].song.url)).video_details;
+  const { title, url, thumbnails, channel, durationRaw } = videoData;
 
-    if (!channel?.icons || !channel.name) return;
+  if (!channel?.icons || !channel.name) return;
 
-    const playerState = audioPlayer.state as AudioPlayerPlayingState;
+  const playerState = audioPlayer.state as AudioPlayerPlayingState;
 
-    let { playbackDuration } = playerState;
+  let { playbackDuration } = playerState;
 
-    playbackDuration = queue[0].song.seek
-      ? playbackDuration + queue[0].song.seek * 1000
-      : playbackDuration;
+  playbackDuration = queue[0].song.seek
+    ? playbackDuration + queue[0].song.seek * 1000
+    : playbackDuration;
 
-    const progressBar = await createProgressBar(
-      playbackDuration,
-      videoData.durationInSec * 1000,
-      8
-    );
+  const progressBar = await createProgressBar(
+    playbackDuration,
+    videoData.durationInSec * 1000,
+    8
+  );
 
-    return new EmbedBuilder()
-      .setColor(
-        (await getAverageColor(thumbnails[3].url)).hex as HexColorString
-      )
-      .setAuthor({
-        name: `${channel.name}`,
-        iconURL: channel.icons[2].url,
-        url: channel.url,
-      })
-      .setTitle(title as string)
-      .setURL(url)
-      .setDescription(
-        `${status.isPaused ? '⏸️ | ' : ''}${
-          status.onRepeat ? '🔁 | ' : ''
-        }🎧 ${MillisecondsToString(
-          playbackDuration
-        )} ${progressBar} ${durationRaw}`
-      )
-      .setThumbnail(
-        thumbnails[thumbnails.length - 1]
-          ? thumbnails[thumbnails.length - 1].url
-          : 'https://i.imgur.com/WO45goR.png'
-      )
-      .setFooter({
-        text: `📨 Запросил: ${queue[0].user} ${
-          queue.length - 1 ? `| 🎼 Треков в очереди: ${queue.length - 1}` : ''
-        }`,
-      });
-  } catch (e) {
-    // In commit #30 I removed thumbnails.length - 1, because it was causing error.
-    // Don't remember why error could occured, so I will try to get more info about it.
-    error('⚠️ Thumbnail error on player: ', e);
-  }
+  return new EmbedBuilder()
+    .setColor((await getAverageColor(thumbnails[3].url)).hex as HexColorString)
+    .setAuthor({
+      name: `${channel.name}`,
+      iconURL: channel.icons[2].url,
+      url: channel.url,
+    })
+    .setTitle(title as string)
+    .setURL(url)
+    .setDescription(
+      `${status.isPaused ? '⏸️ | ' : ''}${
+        status.onRepeat ? '🔁 | ' : ''
+      }🎧 ${MillisecondsToString(
+        playbackDuration
+      )} ${progressBar} ${durationRaw}`
+    )
+    .setThumbnail(await getValidThumbnail(thumbnails))
+    .setFooter({
+      text: `📨 Запросил: ${queue[0].user} ${
+        queue.length - 1 ? `| 🎼 Треков в очереди: ${queue.length - 1}` : ''
+      }`,
+    });
 }
 
-export async function createProgressBar(
+async function createProgressBar(
   value: number,
   maxValue: number,
   size: number
@@ -188,4 +170,12 @@ export async function createProgressBar(
       .then((e) => e?.repeat(emptyProgress))}` +
     `${await client.GetEmoji('ProgressBarEnd')}`
   );
+}
+
+async function getValidThumbnail(thumbnails: any) {
+  for (let i = thumbnails.length - 1; i >= 0; i--) {
+    const isAvaliable = await CheckIfAvaliable(thumbnails[i].url);
+    if (isAvaliable) return thumbnails[i].url;
+  }
+  return 'https://i.imgur.com/WO45goR.png';
 }

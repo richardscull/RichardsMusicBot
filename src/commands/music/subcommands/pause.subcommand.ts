@@ -4,7 +4,7 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { sendThreadEmbed } from '../helpers/embeds.helper';
+import { SendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand.setName('pause').setDescription('Функция паузы трека');
@@ -29,7 +29,7 @@ export async function execute(
   );
 
   if (embed.playerThread)
-    sendThreadEmbed(interaction, embed.playerThread, {
+    SendThreadEmbed(interaction, embed.playerThread, {
       description: `🎶 Пользователь ${
         status.isPaused ? `**возобновил**` : `**приостановил**`
       } вещание трека!`,

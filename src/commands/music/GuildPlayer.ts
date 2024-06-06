@@ -17,16 +17,16 @@ import {
 import { ExtendedClient } from '../../client/ExtendedClient';
 
 import {
-  createMusicEmbed,
-  sendSongEmbedToThread,
-} from './helpers/embeds.helper';
-import {
   ensureValidVoiceConnection,
   errorCodes,
   firstObjectToAudioResource,
 } from './helpers/tracks.helper';
 import { stopAudioPlayer } from './subcommands/stop.subcommand';
 import { guildObject } from '../../types';
+import {
+  CreateMusicEmbed,
+  SendSongEmbedToThread,
+} from './helpers/embeds.helper';
 
 export async function createGuildPlayer(
   interaction: ChatInputCommandInteraction<'cached'>,
@@ -113,7 +113,7 @@ async function setAudioPlayerBehavior(
     if (!guildPlayer) return;
     const { embed } = guildPlayer;
 
-    embed.playerEmbed = await createMusicEmbed(guildPlayer);
+    embed.playerEmbed = await CreateMusicEmbed(guildPlayer);
     if (!embed.playerEmbed) return;
 
     if (embed.playerMessage) {
@@ -132,7 +132,7 @@ async function setAudioPlayerBehavior(
       });
     }
 
-    await sendSongEmbedToThread(guildPlayer);
+    await SendSongEmbedToThread(guildPlayer);
 
     if (guildPlayer.interval) clearInterval(guildPlayer.interval);
     guildPlayer.interval = setInterval(
@@ -202,7 +202,7 @@ async function setAudioPlayerBehavior(
 
     if (!playerEmbed || !playerMessage || !playerThread) return;
 
-    embed.playerEmbed = await createMusicEmbed(guildPlayer);
+    embed.playerEmbed = await CreateMusicEmbed(guildPlayer);
 
     if (embed.playerMessage && embed.playerEmbed)
       embed.playerMessage.edit({ embeds: [embed.playerEmbed] }).catch(() => {});

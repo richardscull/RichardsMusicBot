@@ -7,9 +7,10 @@ import {
 import play from 'play-dl';
 
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { sendThreadEmbed } from '../helpers/embeds.helper';
+
 import CreateMenuReply from '../../../utils/embeds/selectMenuHandler';
 import { songObject, stringMenuOption } from '../../../types';
+import { SendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -59,7 +60,7 @@ export async function execute(
       });
 
       if (embed.playerThread)
-        sendThreadEmbed(interaction, embed.playerThread, {
+        SendThreadEmbed(interaction, embed.playerThread, {
           description: `⌛ Пользователь переключил трек **${videoData.title}** на главу **${choiceDes.label}**!`,
         });
 

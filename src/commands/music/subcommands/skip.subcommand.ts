@@ -3,9 +3,9 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { sendThreadEmbed } from '../helpers/embeds.helper';
 import { stopAudioPlayer } from './stop.subcommand';
 import Pluralize from '../../../utils/textConversion/pluralize';
+import { SendThreadEmbed } from '../helpers/embeds.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -54,7 +54,7 @@ export async function execute(
   );
 
   if (embed.playerThread && queue.length > 1)
-    await sendThreadEmbed(interaction, embed.playerThread, {
+    await SendThreadEmbed(interaction, embed.playerThread, {
       description: `⏭ Пользователь ${
         timesToSkip
           ? `пропустил **${timesToSkip}** ${Pluralize(timesToSkip, 'трек', {
