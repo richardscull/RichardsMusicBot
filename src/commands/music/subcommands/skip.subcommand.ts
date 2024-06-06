@@ -29,10 +29,6 @@ export async function execute(
 
   if (timesToSkip) guildPlayer.queue = guildPlayer.queue.slice(timesToSkip - 1);
 
-  if (guildPlayer.status.onRepeat) {
-    guildPlayer.queue.shift();
-  }
-
   const { queue, embed } = guildPlayer;
 
   if (queue.length <= 1) {
@@ -40,6 +36,13 @@ export async function execute(
     await stopAudioPlayer(reason, { client, guildPlayer });
   } else {
     guildPlayer.status.isPaused = false;
+
+    // If the player is on repeat, remove the first track from the queue
+    // Because on repeat player doesnt skips the current track
+    if (guildPlayer.status.onRepeat) {
+      guildPlayer.queue.shift();
+    }
+
     guildPlayer.audioPlayer.stop(true);
   }
 
@@ -53,7 +56,7 @@ export async function execute(
       : `✅ Текущий трек был пропущен!`
   );
 
-  if (embed.playerThread && queue.length > 1)
+  if (embed.playerThread)
     await SendThreadEmbed(interaction, embed.playerThread, {
       description: `⏭ Пользователь ${
         timesToSkip

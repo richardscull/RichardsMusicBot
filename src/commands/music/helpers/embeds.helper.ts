@@ -14,6 +14,7 @@ import { guildObject, trackShortInfo } from '../../../types';
 import numberWith from '../../../utils/textConversion/numberWith';
 import { MillisecondsToString } from '../../../utils/textConversion/secondsTo';
 import { CheckIfAvaliable } from '../../../utils/fetch';
+import { error } from '../../../utils/logger';
 
 interface defaultEmbedOptions {
   description: string;
@@ -34,7 +35,9 @@ export function SendThreadEmbed(
     .setColor(options.color ? options.color : 'Default')
     .setTimestamp();
 
-  return thread.send({ embeds: [createEmbed] });
+  return thread.send({ embeds: [createEmbed] }).catch(() => {
+    error('Failed to send embed to thread');
+  });
 }
 
 export async function SendSongEmbedToThread(guildPlayer: guildObject) {
@@ -77,7 +80,8 @@ export async function SendSongEmbedToThread(guildPlayer: guildObject) {
     .setTimestamp()
     .setFooter({ text: `📨 Запросил: ${queue[0].user}` });
 
-  if (embed.playerThread) embed.playerThread.send({ embeds: [createEmbed] });
+  if (embed.playerThread)
+    embed.playerThread.send({ embeds: [createEmbed] }).catch(() => {});
 
   return;
 }

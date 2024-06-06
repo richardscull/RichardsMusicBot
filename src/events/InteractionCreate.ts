@@ -1,7 +1,7 @@
 import { Events, ChatInputCommandInteraction } from 'discord.js';
 import { client } from '../client/index';
 import * as commandModules from '../commands';
-import { error } from '../utils/logger';
+import log, { error } from '../utils/logger';
 
 const commands = Object(commandModules);
 
@@ -14,6 +14,9 @@ module.exports = {
     const subcommand = interaction.options.getSubcommand(false);
 
     try {
+      log(
+        `🐬 ${interaction.user.tag} used /${commandName} ${subcommand ? subcommand + ' ' : ''}`
+      );
       await commands[commandName].execute(interaction, client);
     } catch (err: any) {
       error(

@@ -27,6 +27,7 @@ import {
   CreateMusicEmbed,
   SendSongEmbedToThread,
 } from './helpers/embeds.helper';
+import { error } from '../../utils/logger';
 
 export async function createGuildPlayer(
   interaction: ChatInputCommandInteraction<'cached'>,
@@ -54,21 +55,22 @@ export async function createGuildPlayer(
     adapterCreator: guild.voiceAdapterCreator,
   });
 
+  // NOTE: I badly remember why I added this, but I think it should be the edge case...
   voiceConnection.on(VoiceConnectionStatus.Disconnected, async () => {
-    try {
-      await Promise.race([
-        entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
-        entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
-      ]);
-    } catch (error) {
-      const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
-      if (!guildPlayer) return voiceConnection.destroy();
+    // try {
+    //   await Promise.race([
+    //     entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
+    //     entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
+    //   ]);
+    // } catch (error) {
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
+    if (!guildPlayer) return voiceConnection.destroy();
 
-      stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
-        client,
-        guildPlayer,
-      });
-    }
+    stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
+      client,
+      guildPlayer,
+    });
+    // }
   });
 
   const audioPlayer = createAudioPlayer({
@@ -124,10 +126,15 @@ async function setAudioPlayerBehavior(
     } else {
       if (!interaction.channel) return;
 
-      embed.playerMessage = await interaction.channel.send({
-        embeds: [embed.playerEmbed],
-      });
+      embed.playerMessage = await interaction.channel
+        .send({
+          embeds: [embed.playerEmbed],
+        })
+        .catch(() => error(`Ошибка при отправке сообщения в канал`))
+        .then((message) => message as any);
     }
+
+    if (!embed.playerMessage) return;
 
     if (!embed.playerThread) {
       embed.playerThread = await embed.playerMessage.startThread({
@@ -158,7 +165,9 @@ async function setAudioPlayerBehavior(
     /*  NOTE: The second condition ensures that if the next song has a seek value,
      indicating that the user has changed the chapter of the current song,
     we shift to a current song that has an updated seek position.  */
-    if (!status.onRepeat || (queue[1] && queue[1].song.seek)) queue.shift();
+    if (!status.onRepeat || (queue[1] && queue[1].song.seek)) {
+      queue.shift();
+    }
 
     const voiceChannel = client.channels.cache.get(
       guildPlayer.voiceConnection.joinConfig.channelId
