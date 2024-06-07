@@ -2,6 +2,7 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
+  entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
   VoiceConnectionStatus,
@@ -54,23 +55,22 @@ export async function createGuildPlayer(
     adapterCreator: guild.voiceAdapterCreator,
   });
 
-  // NOTE: I badly remember why I added this, but I commented code caused
-  // the bot to stop playing music and just stuck in the voice channel.
+  // Give the bot 5 seconds to connect to the voice channel if recconected (being moved to another channel)
   voiceConnection.on(VoiceConnectionStatus.Disconnected, async () => {
-    // try {
-    //   await Promise.race([
-    //     entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
-    //     entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
-    //   ]);
-    // } catch (error) {
-    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
-    if (!guildPlayer) return voiceConnection.destroy();
+    try {
+      await Promise.race([
+        entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
+        entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
+      ]);
+    } catch (error) {
+      const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
+      if (!guildPlayer) return voiceConnection.destroy();
 
-    stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
-      client,
-      guildPlayer,
-    });
-    // }
+      stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
+        client,
+        guildPlayer,
+      });
+    }
   });
 
   const audioPlayer = createAudioPlayer({
