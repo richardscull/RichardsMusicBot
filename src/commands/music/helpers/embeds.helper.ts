@@ -71,7 +71,9 @@ export async function SendSongEmbedToThread(guildPlayer: guildObject) {
         value: numberWith(views, ' '),
       }
     )
-    .setFooter({ text: `📨 Запросил: ${queue[0].user}`.slice(0, 255) });
+    .setFooter({
+      text: `📨 Запросил: ${queue[0]?.user || 'Неизвестно'}`.slice(0, 255),
+    });
 
   const actionRowWithLink = new ActionRowBuilder<ButtonBuilder>().setComponents(
     new ButtonBuilder()
@@ -125,7 +127,7 @@ export async function CreateMusicEmbed(guildPlayer: guildObject) {
     .setDescription(description)
     .setThumbnail(await getValidImage(thumbnails))
     .setFooter({
-      text: `📨 Запросил: ${queue[0].user} ${
+      text: `📨 Запросил: ${queue[0].user || 'Неизвестно'} ${
         queue.length - 1 ? `| 🎼 Треков в очереди: ${queue.length - 1}` : ''
       }`.slice(0, 255),
     });

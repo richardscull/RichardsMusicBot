@@ -17,6 +17,8 @@ async function recreatePlayerThread(Thread: ThreadChannel) {
   if (!currentGuildPlayer || !isDeletedThreadWasPlayerThread) return;
   if (!currentGuildPlayer.embed.playerMessage) return;
 
+  if (currentGuildPlayer.shuttingDown) return;
+
   currentGuildPlayer.embed.playerThread =
     await currentGuildPlayer.embed.playerMessage.startThread({
       name: '🔊 Музыкальный плеер',

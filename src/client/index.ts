@@ -22,9 +22,12 @@ async function serverInitializing() {
   process.on('SIGTERM', HandleShutdown.bind(null, client));
   process.on('uncaughtException', (e) => {
     HandleShutdown.bind(null, client, true);
-    console.log(e);
+    console.error(e);
   });
-  process.on('unhandledRejection', HandleShutdown.bind(null, client, true));
+  process.on('unhandledRejection', (e) => {
+    HandleShutdown.bind(null, client, true);
+    console.error(e);
+  });
 }
 
 serverInitializing();

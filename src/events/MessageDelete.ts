@@ -20,6 +20,8 @@ async function checkIfPlayerMessage(Message: Message<true>) {
   if (Message.channel instanceof StageChannel) return;
   if (!guildPlayer.embed.playerEmbed) return;
 
+  if (guildPlayer.shuttingDown) return;
+
   guildPlayer.embed.playerMessage = await Message.channel.send({
     embeds: [guildPlayer.embed.playerEmbed],
   });

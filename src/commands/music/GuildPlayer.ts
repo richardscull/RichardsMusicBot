@@ -157,6 +157,9 @@ async function setAudioPlayerBehavior(
     if (!guildPlayer || !guildPlayer.voiceConnection.joinConfig.channelId)
       return;
 
+    // Already being handled, so ignore
+    if (guildPlayer.shuttingDown) return;
+
     clearInterval(guildPlayer.interval);
 
     const { status, queue } = guildPlayer;

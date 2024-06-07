@@ -9,6 +9,7 @@ export interface guildObject {
   queue: Array<songObject>;
   guildId: string;
   interval?: NodeJS.Timeout;
+  shuttingDown?: boolean;
   embed: {
     playerMessage?: Message<true>;
     playerEmbed?: EmbedBuilder;

@@ -35,30 +35,48 @@ export async function stopAudioPlayer(
 ) {
   const { client, guildPlayer } = props;
 
-  const timePlayed = getDuration((Date.now() - guildPlayer.startTime) / 1000);
+  // Set the guild player to shutting down
+  guildPlayer.shuttingDown = true;
 
-  await client.DeleteGuildPlayer(guildPlayer.guildId);
-
+  // Make bot stop whatever it's doing
   if (guildPlayer.interval) clearInterval(guildPlayer.interval);
 
-  if (guildPlayer.voiceConnection) guildPlayer.voiceConnection.destroy();
+  try {
+    // Stop the audio player if it's playing
+    if (guildPlayer.audioPlayer) guildPlayer.audioPlayer.stop(true);
 
-  if (guildPlayer.audioPlayer) guildPlayer.audioPlayer.stop(true);
+    // Destroy the voice connection if it exists
+    if (guildPlayer.voiceConnection) guildPlayer.voiceConnection.destroy();
+  } catch (err) {
+    error('Error while stopping the audio player', err);
+  }
 
   const { playerEmbed, playerMessage, playerThread } = guildPlayer.embed;
 
-  if (playerEmbed)
-    playerEmbed.setDescription(reason + `\n⌚ Время работы: ${timePlayed}`);
-
-  if (playerEmbed && playerEmbed.data.footer)
-    playerEmbed.data.footer.text = playerEmbed.data.footer.text.split('|')[0];
-
-  if (playerMessage && playerEmbed)
-    await playerMessage.edit({ embeds: [playerEmbed] }).catch(() => {
-      playerMessage.delete().catch((err) => {
-        error(err);
-      });
+  // First, delete the thread if it exists
+  if (playerThread)
+    await playerThread.delete().catch((err) => {
+      error("Couldn't delete the player thread", err);
     });
 
-  if (playerThread) await playerThread.delete();
+  // Then, update the embed with the reason
+  if (playerEmbed) {
+    const timePlayed = getDuration((Date.now() - guildPlayer.startTime) / 1000);
+    playerEmbed.setDescription(reason + `\n⌚ Время работы: ${timePlayed}`);
+
+    if (playerEmbed.data.footer)
+      playerEmbed.data.footer.text = playerEmbed.data.footer.text.split('|')[0];
+
+    if (playerMessage) {
+      await playerMessage.edit({ embeds: [playerEmbed] }).catch(async (err) => {
+        error("Couldn't edit the player message", err);
+        await playerMessage.delete().catch((errNew) => {
+          error("Couldn't delete the player message", errNew);
+        });
+      });
+    }
+  }
+
+  // Finally, delete the guild player from the cache
+  await client.DeleteGuildPlayer(guildPlayer.guildId);
 }
