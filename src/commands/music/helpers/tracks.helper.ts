@@ -1,4 +1,4 @@
-import { createAudioResource } from '@discordjs/voice';
+import { StreamType, createAudioResource } from '@discordjs/voice';
 import { ChatInputCommandInteraction, User, VoiceChannel } from 'discord.js';
 
 import {
@@ -16,6 +16,7 @@ import {
   songObject,
   trackShortInfo,
 } from '../../../types';
+import ytdl from 'ytdl-core';
 
 /*     ERROR CODES       */
 
@@ -124,12 +125,22 @@ export async function firstObjectToAudioResource(
     songObject[0] = await getSpotifyTrack(songObject[0].song.url, interaction);
   }
 
-  const stream = await play.stream(songObject[0].song.url, {
-    seek: seek,
+  // ! PLAY-DL STREAM LOGIC. NOT WORKING SOMEHOW
+  // const stream = await play.stream(songObject[0].song.url, {
+  //   seek: seek,
+  // });
+
+  // FIXME: PLAY-DL STREAMING ISSUE, LAZY TO FIX IT PROPERLY SO I ADDED YTDL-CORE
+  const stream = ytdl(songObject[0].song.url, {
+    filter: 'audioonly',
+    highWaterMark: 1 << 62,
+    liveBuffer: 1 << 62,
+    dlChunkSize: 0,
+    quality: 'lowestaudio',
   });
 
-  return createAudioResource(stream.stream, {
-    inputType: stream.type,
+  return createAudioResource(stream, {
+    inputType: StreamType.Arbitrary,
   });
 }
 

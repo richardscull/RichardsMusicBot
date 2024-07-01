@@ -12,6 +12,9 @@ export const data = new SlashCommandBuilder()
   .setDMPermission(false);
 
 for (const subcommand of Object.values(subcommands)) {
+  const fakeBuilder = new SlashCommandSubcommandBuilder();
+  // TEMPORARY FIX WHILE PLAY-DL API IS FUCKED
+  if (subcommand.data(fakeBuilder).name === 'chapters') continue;
   data.addSubcommand(subcommand.data);
 }
 
