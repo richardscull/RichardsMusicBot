@@ -16,7 +16,7 @@ import {
   songObject,
   trackShortInfo,
 } from '../../../types';
-import ytdl from 'ytdl-core';
+import ytdl from '@distube/ytdl-core';
 
 /*     ERROR CODES       */
 
@@ -130,12 +130,11 @@ export async function firstObjectToAudioResource(
   //   seek: seek,
   // });
 
-  // FIXME: PLAY-DL STREAMING ISSUE, LAZY TO FIX IT PROPERLY SO I ADDED YTDL-CORE
+  // FIXME: PLAY-DL STREAMING ISSUE, LAZY TO FIX IT PROPERLY SO I THIS
   const stream = ytdl(songObject[0].song.url, {
     filter: 'audioonly',
     highWaterMark: 1 << 62,
     liveBuffer: 1 << 62,
-    dlChunkSize: 0,
     quality: 'lowestaudio',
   });
 
