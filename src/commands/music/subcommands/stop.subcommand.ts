@@ -75,6 +75,17 @@ export async function stopAudioPlayer(
         });
       });
     }
+  } else {
+    // If the player embed doesn't exist, send the reason to the VC text channel
+    const channel = await client.channels.fetch(
+      guildPlayer.voiceConnection.joinConfig.channelId as string
+    );
+
+    if (channel && channel.isTextBased()) {
+      await channel.send({
+        embeds: [client.GetErrorEmbed(reason)],
+      });
+    }
   }
 
   // Finally, delete the guild player from the cache

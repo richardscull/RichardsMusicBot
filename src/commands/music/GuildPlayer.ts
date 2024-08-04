@@ -110,6 +110,18 @@ async function setAudioPlayerBehavior(
     if (guildPlayer) guildPlayer.status.isPaused = true;
   });
 
+  audioPlayer.on('error', async (err) => {
+    const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
+    if (!guildPlayer) return;
+
+    error(`❌ An error occurred while playing audio:`, err);
+
+    await stopAudioPlayer(`🌧 Произошла ошибка при воспроизведении`, {
+      client,
+      guildPlayer,
+    });
+  });
+
   audioPlayer.on(AudioPlayerStatus.Playing, async () => {
     const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
     if (!guildPlayer) return;
