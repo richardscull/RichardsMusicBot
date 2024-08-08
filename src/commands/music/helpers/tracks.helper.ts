@@ -17,6 +17,10 @@ import {
   trackShortInfo,
 } from '../../../types';
 import ytdl from '@distube/ytdl-core';
+import fluentFfmpeg from 'fluent-ffmpeg';
+import ffmpegPath from 'ffmpeg-static';
+
+fluentFfmpeg.setFfmpegPath(ffmpegPath as string);
 
 /*     ERROR CODES       */
 
@@ -125,18 +129,18 @@ export async function firstObjectToAudioResource(
     songObject[0] = await getSpotifyTrack(songObject[0].song.url, interaction);
   }
 
-  // ! PLAY-DL STREAM LOGIC. NOT WORKING SOMEHOW
-  // const stream = await play.stream(songObject[0].song.url, {
-  //   seek: seek,
-  // });
-
-  // FIXME: PLAY-DL STREAMING ISSUE, LAZY TO FIX IT PROPERLY SO I THIS
-  const stream = ytdl(songObject[0].song.url, {
+  let stream: any = ytdl(songObject[0].song.url, {
     filter: 'audioonly',
     highWaterMark: 1 << 62,
     liveBuffer: 1 << 62,
     quality: 'lowestaudio',
   });
+
+  if (seek) {
+    stream = fluentFfmpeg({ source: stream })
+      .toFormat('mp3')
+      .setStartTime(seek);
+  }
 
   return createAudioResource(stream, {
     inputType: StreamType.Arbitrary,
