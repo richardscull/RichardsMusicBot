@@ -4,7 +4,11 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install --production
+RUN apk update
+RUN apk add
+RUN apk add ffmpeg
+
+RUN npm install --omit=dev
 
 COPY . .
 
