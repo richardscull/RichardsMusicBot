@@ -1,0 +1,7 @@
+name: richards-coffee-shop
+services:
+  discord-music-bot:
+    build: .
+    ports:
+      - '4242:4000' # Heartbeat port
+    restart: always
