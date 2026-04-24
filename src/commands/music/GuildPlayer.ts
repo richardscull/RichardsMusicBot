@@ -2,6 +2,7 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
+  DiscordGatewayAdapterCreator,
   entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
@@ -17,6 +18,7 @@ import {
 import { ExtendedClient } from '../../client/ExtendedClient';
 
 import {
+  cleanupRemovedSongs,
   ensureValidVoiceConnection,
   errorCodes,
   firstObjectToAudioResource,
@@ -52,7 +54,8 @@ export async function createGuildPlayer(
   const voiceConnection = joinVoiceChannel({
     channelId: voiceChannel.id,
     guildId: guildId,
-    adapterCreator: guild.voiceAdapterCreator,
+    adapterCreator:
+      guild.voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator,
   });
 
   // Give the bot 5 seconds to connect to the voice channel if recconected (being moved to another channel)
@@ -182,7 +185,8 @@ async function setAudioPlayerBehavior(
      indicating that the user has changed the chapter of the current song,
     we shift to a current song that has an updated seek position.  */
     if (!status.onRepeat || (queue[1] && queue[1].song.seek)) {
-      queue.shift();
+      const finished = queue.shift();
+      if (finished) await cleanupRemovedSongs([finished], queue);
     }
 
     const voiceChannel = client.channels.cache.get(

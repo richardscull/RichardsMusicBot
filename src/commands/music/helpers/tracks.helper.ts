@@ -16,9 +16,47 @@ import {
   songObject,
   trackShortInfo,
 } from '../../../types';
-import ytdl from '@distube/ytdl-core';
 import fluentFfmpeg from 'fluent-ffmpeg';
 import ffmpegPath from 'ffmpeg-static';
+
+import youtubedl from 'youtube-dl-exec';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import { error } from '../../../utils/logger';
+
+const CACHE_DIR = './cachedir';
+if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+
+export function getCachedTrackPath(url: string): string {
+  const hash = crypto.createHash('md5').update(url).digest('hex');
+  return path.join(CACHE_DIR, `track_${hash}.opus`);
+}
+
+export async function removeCachedTrack(url: string): Promise<void> {
+  const filepath = getCachedTrackPath(url);
+  try {
+    await fs.promises.unlink(filepath);
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException)?.code;
+    if (code && code !== 'ENOENT') {
+      error(`Failed to remove cached track at ${filepath}`, err);
+    }
+  }
+}
+
+export async function cleanupRemovedSongs(
+  removed: songObject[],
+  remaining: songObject[]
+): Promise<void> {
+  const remainingUrls = new Set(remaining.map((s) => s.song.url));
+  await Promise.all(
+    removed
+      .filter((s) => !remainingUrls.has(s.song.url))
+      .map((s) => removeCachedTrack(s.song.url))
+  );
+}
+
 
 fluentFfmpeg.setFfmpegPath(ffmpegPath as string);
 
@@ -129,18 +167,28 @@ export async function firstObjectToAudioResource(
     songObject[0] = await getSpotifyTrack(songObject[0].song.url, interaction);
   }
 
-  let stream: any = ytdl(songObject[0].song.url, {
-    filter: 'audioonly',
-    highWaterMark: 1 << 62,
-    liveBuffer: 1 << 62,
-    quality: 'lowestaudio',
-  });
+  const filepath = getCachedTrackPath(songObject[0].song.url);
 
-  if (seek) {
-    stream = fluentFfmpeg({ source: stream })
-      .toFormat('mp3')
-      .setStartTime(seek);
+  if (!fs.existsSync(filepath)) {
+    await youtubedl(songObject[0].song.url, {
+      output: filepath,
+      format: 'bestaudio',
+      noCheckCertificates: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+      addHeader: [
+        'referer:youtube.com',
+        'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      ],
+      extractAudio: true,
+      audioFormat: 'opus',
+      audioQuality: 128,
+    });
   }
+
+  const stream: any = fluentFfmpeg({ source: fs.createReadStream(filepath) })
+    .toFormat('mp3')
+    .setStartTime(seek ? seek : 0);
 
   return createAudioResource(stream, {
     inputType: StreamType.Arbitrary,

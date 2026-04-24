@@ -6,6 +6,7 @@ import { ExtendedClient } from '../../../client/ExtendedClient';
 import { stopAudioPlayer } from './stop.subcommand';
 import Pluralize from '../../../utils/textConversion/pluralize';
 import { SendThreadEmbed } from '../helpers/embeds.helper';
+import { cleanupRemovedSongs } from '../helpers/tracks.helper';
 
 export const data = (subcommand: SlashCommandSubcommandBuilder) => {
   return subcommand
@@ -27,7 +28,10 @@ export async function execute(
   const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
   if (!guildPlayer) return;
 
-  if (timesToSkip) guildPlayer.queue = guildPlayer.queue.slice(timesToSkip - 1);
+  if (timesToSkip) {
+    const removed = guildPlayer.queue.splice(0, timesToSkip - 1);
+    await cleanupRemovedSongs(removed, guildPlayer.queue);
+  }
 
   const { queue, embed } = guildPlayer;
 
@@ -40,7 +44,8 @@ export async function execute(
     // If the player is on repeat, remove the first track from the queue
     // Because on repeat player doesnt skips the current track
     if (guildPlayer.status.onRepeat) {
-      guildPlayer.queue.shift();
+      const removed = guildPlayer.queue.shift();
+      if (removed) await cleanupRemovedSongs([removed], guildPlayer.queue);
     }
 
     guildPlayer.audioPlayer.stop(true);

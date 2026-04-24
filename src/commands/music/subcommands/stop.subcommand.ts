@@ -3,7 +3,7 @@ import {
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { errorCodes } from '../helpers/tracks.helper';
+import { errorCodes, removeCachedTrack } from '../helpers/tracks.helper';
 import { PlayerProps } from '../../../types';
 import { getDuration } from '../../../utils/textConversion/getDuration';
 import { error } from '../../../utils/logger';
@@ -50,6 +50,11 @@ export async function stopAudioPlayer(
   } catch (err) {
     error('Error while stopping the audio player', err);
   }
+
+  // Clean up any cached track files from the queue
+  await Promise.all(
+    guildPlayer.queue.map((song) => removeCachedTrack(song.song.url))
+  );
 
   const { playerEmbed, playerMessage, playerThread } = guildPlayer.embed;
 

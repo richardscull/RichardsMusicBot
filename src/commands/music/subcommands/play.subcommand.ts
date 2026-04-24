@@ -1,4 +1,5 @@
 import {
+  cleanupRemovedSongs,
   ensureValidVoiceConnection,
   errorCodes,
   firstObjectToAudioResource,
@@ -137,7 +138,10 @@ export async function execute(
   }
 
   if (isForcedInput(interaction)) {
-    if (guildPlayer.status.onRepeat) guildPlayer.queue.shift();
+    if (guildPlayer.status.onRepeat) {
+      const removed = guildPlayer.queue.shift();
+      if (removed) await cleanupRemovedSongs([removed], guildPlayer.queue);
+    }
 
     guildPlayer.status.isPaused = false;
     guildPlayer.audioPlayer.stop(true); // Stop the player to play the next song

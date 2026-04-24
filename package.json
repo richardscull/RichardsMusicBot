@@ -1,6 +1,6 @@
 {
   "name": "richards-music-bot",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "main": "index.js",
   "types": "index.d.ts",
   "author": "richardscull",
@@ -24,8 +24,7 @@
   "dependencies": {
     "@discordjs/builders": "^1.8.2",
     "@discordjs/rest": "^2.3.0",
-    "@discordjs/voice": "^0.17.0",
-    "@distube/ytdl-core": "^4.14.4",
+    "@discordjs/voice": "^0.19.2",
     "@swc/core": "^1.5.25",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^20.14.2",
@@ -44,6 +43,7 @@
     "path": "^0.12.7",
     "play-dl": "^1.9.7",
     "ts-node": "^10.9.2",
+    "youtube-dl-exec": "^3.1.5",
     "ytdl-core": "^4.11.5"
   },
   "scripts": {
