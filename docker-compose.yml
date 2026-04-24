@@ -6,7 +6,4 @@ services:
       - '4242:4000' # Heartbeat port
     restart: always
     volumes:
-      - music-cache:/usr/src/app/cachedir
-
-volumes:
-  music-cache:
+      - cachedir:/usr/src/app/cachedir
