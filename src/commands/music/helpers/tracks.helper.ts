@@ -278,7 +278,24 @@ export async function firstObjectToAudioResource(
     .setStartTime(seek ? seek : 0);
   const stream = transcoder.pipe() as PassThrough;
 
+  const closeInputStream = () => {
+    if (!inputStream.destroyed) {
+      inputStream.destroy();
+    }
+  };
+
+  stream.once('close', closeInputStream);
+  stream.once('error', closeInputStream);
+  transcoder.on('end', closeInputStream);
+
   transcoder.on('error', (err) => {
+    closeInputStream();
+
+    if (isExpectedTranscoderCloseError(err)) {
+      stream.destroy();
+      return;
+    }
+
     error(`Failed to transcode cached track ${filepath}`, err);
     stream.destroy(err);
   });
@@ -312,6 +329,13 @@ export async function ensureValidVoiceConnection(
 
 async function delay(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isExpectedTranscoderCloseError(err: Error & { outputStreamError?: Error }) {
+  if (err.message.includes('Premature close')) return true;
+  if (err.outputStreamError?.message.includes('Premature close')) return true;
+
+  return false;
 }
 
 function isTrackLocked(guildPlayer: guildObject, url: string) {
