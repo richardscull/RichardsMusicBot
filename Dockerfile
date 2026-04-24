@@ -4,9 +4,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN apk update
-RUN apk add
-RUN apk add ffmpeg
+RUN apk add --no-cache ffmpeg python3 && ln -sf /usr/bin/python3 /usr/bin/python
 
 RUN npm install --omit=dev
 
