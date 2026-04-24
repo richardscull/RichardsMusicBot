@@ -23,19 +23,12 @@ import youtubedl from 'youtube-dl-exec';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import { PassThrough } from 'stream';
 import { error } from '../../../utils/logger';
 
-const CACHE_DIR = './cachedir';
+const CACHE_DIR = path.resolve(process.cwd(), 'cachedir');
 if (!fs.existsSync(CACHE_DIR)) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-} else {
-  for (const file of fs.readdirSync(CACHE_DIR)) {
-    try {
-      fs.unlinkSync(path.join(CACHE_DIR, file));
-    } catch (err) {
-      error(`Failed to purge stale cache file ${file}`, err);
-    }
-  }
 }
 
 export function getCachedTrackPath(guildId: string, url: string): string {
@@ -51,26 +44,61 @@ export async function removeCachedTrack(
   url: string
 ): Promise<void> {
   const filepath = getCachedTrackPath(guildId, url);
-  try {
-    await fs.promises.unlink(filepath);
-  } catch (err) {
-    const code = (err as NodeJS.ErrnoException)?.code;
-    if (code && code !== 'ENOENT') {
-      error(`Failed to remove cached track at ${filepath}`, err);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await fs.promises.unlink(filepath);
+      return;
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException)?.code;
+      if (code === 'ENOENT') return;
+
+      const isRetryable = code === 'EBUSY' || code === 'EPERM';
+      const isLastAttempt = attempt === 4;
+
+      if (!isRetryable || isLastAttempt) {
+        error(`Failed to remove cached track at ${filepath}`, err);
+        return;
+      }
+
+      await delay(150 * (attempt + 1));
     }
   }
 }
 
 export async function cleanupRemovedSongs(
-  guildId: string,
+  guildPlayer: guildObject,
   removed: songObject[],
   remaining: songObject[]
 ): Promise<void> {
   const remainingUrls = new Set(remaining.map((s) => s.song.url));
+  guildPlayer.pendingCacheRemovals ??= new Set<string>();
+
+  const deletions = removed
+    .filter((song) => !remainingUrls.has(song.song.url))
+    .map((song) => song.song.url)
+    .map(async (url) => {
+      if (guildPlayer.activeTrackUrl === url) {
+        guildPlayer.pendingCacheRemovals?.add(url);
+        return;
+      }
+
+      await removeCachedTrack(guildPlayer.guildId, url);
+    });
+
+  await Promise.all(deletions);
+}
+
+export async function flushPendingCacheRemovals(guildPlayer: guildObject) {
+  if (!guildPlayer.pendingCacheRemovals?.size) return;
+
+  const queuedUrls = new Set(guildPlayer.queue.map((song) => song.song.url));
+  const urlsToDelete = Array.from(guildPlayer.pendingCacheRemovals).filter(
+    (url) => url !== guildPlayer.activeTrackUrl && !queuedUrls.has(url)
+  );
+
+  urlsToDelete.forEach((url) => guildPlayer.pendingCacheRemovals?.delete(url));
   await Promise.all(
-    removed
-      .filter((s) => !remainingUrls.has(s.song.url))
-      .map((s) => removeCachedTrack(guildId, s.song.url))
+    urlsToDelete.map((url) => removeCachedTrack(guildPlayer.guildId, url))
   );
 }
 
@@ -174,6 +202,22 @@ export async function spliceSong(guildPlayer: guildObject, song: songObject) {
   guildPlayer.queue.splice(1, 0, song);
 }
 
+export async function playCurrentTrack(
+  guildPlayer: guildObject,
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
+  if (!guildPlayer.queue.length) return;
+
+  const audioResource = await firstObjectToAudioResource(
+    guildPlayer.queue,
+    interaction
+  );
+
+  guildPlayer.activeTrackUrl = guildPlayer.queue[0].song.url;
+  guildPlayer.audioPlayer.play(audioResource);
+  await flushPendingCacheRemovals(guildPlayer);
+}
+
 export async function firstObjectToAudioResource(
   songObject: songObject[],
   interaction: ChatInputCommandInteraction<'cached'>
@@ -207,9 +251,15 @@ export async function firstObjectToAudioResource(
     });
   }
 
-  const stream: any = fluentFfmpeg({ source: fs.createReadStream(filepath) })
+  const transcoder = fluentFfmpeg({ source: fs.createReadStream(filepath) })
     .toFormat('mp3')
     .setStartTime(seek ? seek : 0);
+  const stream = transcoder.pipe() as PassThrough;
+
+  transcoder.on('error', (err) => {
+    error(`Failed to transcode cached track ${filepath}`, err);
+    stream.destroy(err);
+  });
 
   return createAudioResource(stream, {
     inputType: StreamType.Arbitrary,
@@ -236,6 +286,10 @@ export async function ensureValidVoiceConnection(
   }
 
   return true;
+}
+
+async function delay(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function isBotInVoice(voiceChannel: VoiceChannel, botUser: User) {

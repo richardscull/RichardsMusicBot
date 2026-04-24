@@ -54,7 +54,7 @@ jobs:
           fi
 
       - name: Update typescript
-        run: npm install -D typescript@5.1
+        run: npm install -D typescript@6
 
       - name: Test compile
         run: npm run build

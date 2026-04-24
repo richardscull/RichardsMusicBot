@@ -10,6 +10,8 @@ export interface guildObject {
   guildId: string;
   interval?: NodeJS.Timeout;
   shuttingDown?: boolean;
+  activeTrackUrl?: string;
+  pendingCacheRemovals?: Set<string>;
   embed: {
     playerMessage?: Message<true>;
     playerEmbed?: EmbedBuilder;

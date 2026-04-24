@@ -2,10 +2,10 @@ import {
   cleanupRemovedSongs,
   ensureValidVoiceConnection,
   errorCodes,
-  firstObjectToAudioResource,
   getPlaylistTitle,
   getVideoTitle,
   isForcedInput,
+  playCurrentTrack,
   pushSong,
   spliceSong,
   validateInput,
@@ -57,9 +57,9 @@ export async function execute(
     });
   }
 
-  const guildPlayer = (await client.GetGuildPlayer(interaction.guildId))
-    ? await client.GetGuildPlayer(interaction.guildId)
-    : await createGuildPlayer(interaction, client);
+  const existingGuildPlayer = await client.GetGuildPlayer(interaction.guildId);
+  const guildPlayer =
+    existingGuildPlayer ?? (await createGuildPlayer(interaction, client));
 
   if (!guildPlayer)
     return client.SendEmbed(
@@ -96,8 +96,14 @@ export async function execute(
     guildPlayer.voiceConnection.joinConfig.channelId
   ) as VoiceChannel;
 
-  if (!hasEmptyQueue)
-    await ensureValidVoiceConnection(voiceChannel, { client, guildPlayer });
+  if (!hasEmptyQueue) {
+    const isSafeToQueue = await ensureValidVoiceConnection(voiceChannel, {
+      client,
+      guildPlayer,
+    });
+
+    if (isSafeToQueue === false) return;
+  }
 
   const isUsingForce = isForcedInput(interaction)
     ? ` **без очереди!**`
@@ -128,12 +134,7 @@ export async function execute(
   );
 
   if (guildPlayer.queue.length <= 1 || hasEmptyQueue) {
-    const audioResource = await firstObjectToAudioResource(
-      guildPlayer.queue,
-      interaction
-    );
-
-    guildPlayer.audioPlayer.play(audioResource);
+    await playCurrentTrack(guildPlayer, interaction);
     return;
   }
 
@@ -142,7 +143,7 @@ export async function execute(
       const removed = guildPlayer.queue.shift();
       if (removed)
         await cleanupRemovedSongs(
-          guildPlayer.guildId,
+          guildPlayer,
           [removed],
           guildPlayer.queue
         );

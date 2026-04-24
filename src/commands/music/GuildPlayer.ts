@@ -21,7 +21,7 @@ import {
   cleanupRemovedSongs,
   ensureValidVoiceConnection,
   errorCodes,
-  firstObjectToAudioResource,
+  playCurrentTrack,
 } from './helpers/tracks.helper';
 import { stopAudioPlayer } from './subcommands/stop.subcommand';
 import { guildObject } from '../../types';
@@ -65,11 +65,11 @@ export async function createGuildPlayer(
         entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
         entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000),
       ]);
-    } catch (error) {
+    } catch {
       const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
       if (!guildPlayer) return voiceConnection.destroy();
 
-      stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
+      await stopAudioPlayer(`⚠️ Произошла непредвиденная ошибка`, {
         client,
         guildPlayer,
       });
@@ -97,6 +97,7 @@ export async function createGuildPlayer(
       isPaused: false,
       onRepeat: false,
     },
+    pendingCacheRemovals: new Set<string>(),
   };
 
   client.MusicPlayer.set(guildId, guildPlayerProps);
@@ -116,6 +117,7 @@ async function setAudioPlayerBehavior(
   audioPlayer.on('error', async (err) => {
     const guildPlayer = await client.GetGuildPlayer(interaction.guildId);
     if (!guildPlayer) return;
+    if (guildPlayer.shuttingDown) return;
 
     error(`❌ An error occurred while playing audio:`, err);
 
@@ -178,33 +180,31 @@ async function setAudioPlayerBehavior(
     clearInterval(guildPlayer.interval);
 
     const { status, queue } = guildPlayer;
+    guildPlayer.activeTrackUrl = undefined;
 
-    if (status.onRepeat) queue[0].song.seek = undefined;
+    if (status.onRepeat && queue[0]) queue[0].song.seek = undefined;
 
     /*  NOTE: The second condition ensures that if the next song has a seek value,
      indicating that the user has changed the chapter of the current song,
     we shift to a current song that has an updated seek position.  */
     if (!status.onRepeat || (queue[1] && queue[1].song.seek)) {
       const finished = queue.shift();
-      if (finished)
-        await cleanupRemovedSongs(guildPlayer.guildId, [finished], queue);
+      if (finished) await cleanupRemovedSongs(guildPlayer, [finished], queue);
     }
 
     const voiceChannel = client.channels.cache.get(
       guildPlayer.voiceConnection.joinConfig.channelId
     ) as VoiceChannel;
 
-    await ensureValidVoiceConnection(voiceChannel, {
+    const isSafeToPlay = await ensureValidVoiceConnection(voiceChannel, {
       client,
       guildPlayer,
     });
+    if (isSafeToPlay === false) return;
 
     if (queue.length) {
-      const audioResource = await firstObjectToAudioResource(
-        queue,
-        interaction
-      );
-      return guildPlayer.audioPlayer.play(audioResource);
+      await playCurrentTrack(guildPlayer, interaction);
+      return;
     } else {
       await stopAudioPlayer(`🌧 Плеер закончил свою работу`, {
         client,

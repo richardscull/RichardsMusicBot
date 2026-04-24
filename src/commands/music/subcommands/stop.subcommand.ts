@@ -1,9 +1,14 @@
+import { AudioPlayer, AudioPlayerStatus } from '@discordjs/voice';
 import {
   ChatInputCommandInteraction,
   SlashCommandSubcommandBuilder,
 } from 'discord.js';
 import { ExtendedClient } from '../../../client/ExtendedClient';
-import { errorCodes, removeCachedTrack } from '../helpers/tracks.helper';
+import {
+  cleanupRemovedSongs,
+  errorCodes,
+  flushPendingCacheRemovals,
+} from '../helpers/tracks.helper';
 import { PlayerProps } from '../../../types';
 import { getDuration } from '../../../utils/textConversion/getDuration';
 import { error } from '../../../utils/logger';
@@ -34,9 +39,13 @@ export async function stopAudioPlayer(
   props: PlayerProps
 ) {
   const { client, guildPlayer } = props;
+  if (guildPlayer.shuttingDown) return;
 
   // Set the guild player to shutting down
   guildPlayer.shuttingDown = true;
+  const channelId = guildPlayer.voiceConnection.joinConfig.channelId as
+    | string
+    | undefined;
 
   // Make bot stop whatever it's doing
   if (guildPlayer.interval) clearInterval(guildPlayer.interval);
@@ -51,12 +60,11 @@ export async function stopAudioPlayer(
     error('Error while stopping the audio player', err);
   }
 
-  // Clean up any cached track files from the queue
-  await Promise.all(
-    guildPlayer.queue.map((song) =>
-      removeCachedTrack(guildPlayer.guildId, song.song.url)
-    )
-  );
+  await waitForAudioPlayerToStop(guildPlayer.audioPlayer);
+  guildPlayer.activeTrackUrl = undefined;
+  await cleanupRemovedSongs(guildPlayer, [...guildPlayer.queue], []);
+  guildPlayer.queue = [];
+  await flushPendingCacheRemovals(guildPlayer);
 
   const { playerEmbed, playerMessage, playerThread } = guildPlayer.embed;
 
@@ -84,9 +92,7 @@ export async function stopAudioPlayer(
     }
   } else {
     // If the player embed doesn't exist, send the reason to the VC text channel
-    const channel = await client.channels.fetch(
-      guildPlayer.voiceConnection.joinConfig.channelId as string
-    );
+    const channel = channelId ? await client.channels.fetch(channelId) : null;
 
     if (channel && channel.isTextBased()) {
       await channel.send({
@@ -97,4 +103,20 @@ export async function stopAudioPlayer(
 
   // Finally, delete the guild player from the cache
   await client.DeleteGuildPlayer(guildPlayer.guildId);
+}
+
+async function waitForAudioPlayerToStop(audioPlayer: AudioPlayer) {
+  const timeoutAt = Date.now() + 1_000;
+  while (
+    audioPlayer.state.status !== AudioPlayerStatus.Idle &&
+    Date.now() < timeoutAt
+  ) {
+    await delay(50);
+  }
+
+  await delay(100);
+}
+
+async function delay(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
