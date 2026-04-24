@@ -53,7 +53,9 @@ export async function stopAudioPlayer(
 
   // Clean up any cached track files from the queue
   await Promise.all(
-    guildPlayer.queue.map((song) => removeCachedTrack(song.song.url))
+    guildPlayer.queue.map((song) =>
+      removeCachedTrack(guildPlayer.guildId, song.song.url)
+    )
   );
 
   const { playerEmbed, playerMessage, playerThread } = guildPlayer.embed;

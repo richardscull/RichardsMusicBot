@@ -30,7 +30,11 @@ export async function execute(
 
   if (timesToSkip) {
     const removed = guildPlayer.queue.splice(0, timesToSkip - 1);
-    await cleanupRemovedSongs(removed, guildPlayer.queue);
+    await cleanupRemovedSongs(
+      guildPlayer.guildId,
+      removed,
+      guildPlayer.queue
+    );
   }
 
   const { queue, embed } = guildPlayer;
@@ -45,7 +49,12 @@ export async function execute(
     // Because on repeat player doesnt skips the current track
     if (guildPlayer.status.onRepeat) {
       const removed = guildPlayer.queue.shift();
-      if (removed) await cleanupRemovedSongs([removed], guildPlayer.queue);
+      if (removed)
+        await cleanupRemovedSongs(
+          guildPlayer.guildId,
+          [removed],
+          guildPlayer.queue
+        );
     }
 
     guildPlayer.audioPlayer.stop(true);

@@ -186,7 +186,8 @@ async function setAudioPlayerBehavior(
     we shift to a current song that has an updated seek position.  */
     if (!status.onRepeat || (queue[1] && queue[1].song.seek)) {
       const finished = queue.shift();
-      if (finished) await cleanupRemovedSongs([finished], queue);
+      if (finished)
+        await cleanupRemovedSongs(guildPlayer.guildId, [finished], queue);
     }
 
     const voiceChannel = client.channels.cache.get(

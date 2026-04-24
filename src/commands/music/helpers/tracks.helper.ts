@@ -26,15 +26,31 @@ import crypto from 'crypto';
 import { error } from '../../../utils/logger';
 
 const CACHE_DIR = './cachedir';
-if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+if (!fs.existsSync(CACHE_DIR)) {
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+} else {
+  for (const file of fs.readdirSync(CACHE_DIR)) {
+    try {
+      fs.unlinkSync(path.join(CACHE_DIR, file));
+    } catch (err) {
+      error(`Failed to purge stale cache file ${file}`, err);
+    }
+  }
+}
 
-export function getCachedTrackPath(url: string): string {
-  const hash = crypto.createHash('md5').update(url).digest('hex');
+export function getCachedTrackPath(guildId: string, url: string): string {
+  const hash = crypto
+    .createHash('md5')
+    .update(`${guildId}:${url}`)
+    .digest('hex');
   return path.join(CACHE_DIR, `track_${hash}.opus`);
 }
 
-export async function removeCachedTrack(url: string): Promise<void> {
-  const filepath = getCachedTrackPath(url);
+export async function removeCachedTrack(
+  guildId: string,
+  url: string
+): Promise<void> {
+  const filepath = getCachedTrackPath(guildId, url);
   try {
     await fs.promises.unlink(filepath);
   } catch (err) {
@@ -46,6 +62,7 @@ export async function removeCachedTrack(url: string): Promise<void> {
 }
 
 export async function cleanupRemovedSongs(
+  guildId: string,
   removed: songObject[],
   remaining: songObject[]
 ): Promise<void> {
@@ -53,7 +70,7 @@ export async function cleanupRemovedSongs(
   await Promise.all(
     removed
       .filter((s) => !remainingUrls.has(s.song.url))
-      .map((s) => removeCachedTrack(s.song.url))
+      .map((s) => removeCachedTrack(guildId, s.song.url))
   );
 }
 
@@ -167,7 +184,10 @@ export async function firstObjectToAudioResource(
     songObject[0] = await getSpotifyTrack(songObject[0].song.url, interaction);
   }
 
-  const filepath = getCachedTrackPath(songObject[0].song.url);
+  const filepath = getCachedTrackPath(
+    interaction.guildId,
+    songObject[0].song.url
+  );
 
   if (!fs.existsSync(filepath)) {
     await youtubedl(songObject[0].song.url, {
@@ -176,6 +196,7 @@ export async function firstObjectToAudioResource(
       noCheckCertificates: true,
       noWarnings: true,
       preferFreeFormats: true,
+      continue: false,
       addHeader: [
         'referer:youtube.com',
         'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
