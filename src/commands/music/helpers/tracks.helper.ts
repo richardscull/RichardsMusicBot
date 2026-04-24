@@ -77,7 +77,7 @@ export async function cleanupRemovedSongs(
     .filter((song) => !remainingUrls.has(song.song.url))
     .map((song) => song.song.url)
     .map(async (url) => {
-      if (guildPlayer.activeTrackUrl === url) {
+      if (isTrackLocked(guildPlayer, url) || guildPlayer.activeTrackUrl === url) {
         guildPlayer.pendingCacheRemovals?.add(url);
         return;
       }
@@ -93,7 +93,10 @@ export async function flushPendingCacheRemovals(guildPlayer: guildObject) {
 
   const queuedUrls = new Set(guildPlayer.queue.map((song) => song.song.url));
   const urlsToDelete = Array.from(guildPlayer.pendingCacheRemovals).filter(
-    (url) => url !== guildPlayer.activeTrackUrl && !queuedUrls.has(url)
+    (url) =>
+      url !== guildPlayer.activeTrackUrl &&
+      !queuedUrls.has(url) &&
+      !isTrackLocked(guildPlayer, url)
   );
 
   urlsToDelete.forEach((url) => guildPlayer.pendingCacheRemovals?.delete(url));
@@ -210,7 +213,8 @@ export async function playCurrentTrack(
 
   const audioResource = await firstObjectToAudioResource(
     guildPlayer.queue,
-    interaction
+    interaction,
+    guildPlayer
   );
 
   guildPlayer.activeTrackUrl = guildPlayer.queue[0].song.url;
@@ -220,7 +224,8 @@ export async function playCurrentTrack(
 
 export async function firstObjectToAudioResource(
   songObject: songObject[],
-  interaction: ChatInputCommandInteraction<'cached'>
+  interaction: ChatInputCommandInteraction<'cached'>,
+  guildPlayer: guildObject
 ) {
   const { type, seek } = songObject[0].song;
 
@@ -251,7 +256,24 @@ export async function firstObjectToAudioResource(
     });
   }
 
-  const transcoder = fluentFfmpeg({ source: fs.createReadStream(filepath) })
+  const trackUrl = songObject[0].song.url;
+  const inputStream = fs.createReadStream(filepath);
+
+  lockTrack(guildPlayer, trackUrl);
+
+  let isReleased = false;
+  const releaseTrack = () => {
+    if (isReleased) return;
+    isReleased = true;
+    unlockTrack(guildPlayer, trackUrl).catch((err) => {
+      error(`Failed to release cache lock for ${filepath}`, err);
+    });
+  };
+
+  inputStream.once('close', releaseTrack);
+  inputStream.once('error', releaseTrack);
+
+  const transcoder = fluentFfmpeg({ source: inputStream })
     .toFormat('mp3')
     .setStartTime(seek ? seek : 0);
   const stream = transcoder.pipe() as PassThrough;
@@ -290,6 +312,29 @@ export async function ensureValidVoiceConnection(
 
 async function delay(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isTrackLocked(guildPlayer: guildObject, url: string) {
+  return (guildPlayer.cacheLocks?.get(url) ?? 0) > 0;
+}
+
+function lockTrack(guildPlayer: guildObject, url: string) {
+  guildPlayer.cacheLocks ??= new Map<string, number>();
+
+  const currentLocks = guildPlayer.cacheLocks.get(url) ?? 0;
+  guildPlayer.cacheLocks.set(url, currentLocks + 1);
+}
+
+async function unlockTrack(guildPlayer: guildObject, url: string) {
+  const currentLocks = guildPlayer.cacheLocks?.get(url) ?? 0;
+
+  if (currentLocks <= 1) {
+    guildPlayer.cacheLocks?.delete(url);
+  } else {
+    guildPlayer.cacheLocks?.set(url, currentLocks - 1);
+  }
+
+  await flushPendingCacheRemovals(guildPlayer);
 }
 
 export function isBotInVoice(voiceChannel: VoiceChannel, botUser: User) {

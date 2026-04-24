@@ -97,6 +97,7 @@ export async function createGuildPlayer(
       isPaused: false,
       onRepeat: false,
     },
+    cacheLocks: new Map<string, number>(),
     pendingCacheRemovals: new Set<string>(),
   };
 

@@ -1,6 +1,6 @@
 {
   "name": "richards-music-bot",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "main": "index.js",
   "types": "index.d.ts",
   "author": "richardscull",

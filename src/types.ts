@@ -11,6 +11,7 @@ export interface guildObject {
   interval?: NodeJS.Timeout;
   shuttingDown?: boolean;
   activeTrackUrl?: string;
+  cacheLocks?: Map<string, number>;
   pendingCacheRemovals?: Set<string>;
   embed: {
     playerMessage?: Message<true>;
